@@ -1,0 +1,327 @@
+You are building a full-stack, mobile-first multilingual storytelling web platform 
+called "Hikāya · حكاية". Below are the complete specifications.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 1. PLATFORM OVERVIEW
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+A mobile-first, multilingual digital library where users can browse, read, and 
+listen to stories and movies. The platform features AI-powered, multi-voice audio 
+narration where each character is voiced with a distinct tone, accent, and emotional 
+register — making it clear to listeners which character is speaking at any moment.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 2. TECH STACK (Recommended)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Frontend:   Next.js 14+ (App Router) + Tailwind CSS + shadcn/ui
+Backend:    Node.js + Express OR Next.js API Routes
+Database:   PostgreSQL (via Supabase or PlanetScale) + Prisma ORM
+Storage:    Supabase Storage OR AWS S3 (for PDFs, audio, images)
+Auth:       NextAuth.js with role-based access (user / super_admin)
+TTS/Voice:  ElevenLabs API (multi-voice, multi-language, emotional tones)
+PDF Parse:  pdf-parse or PyMuPDF (to extract text from uploaded PDFs)
+i18n:       next-intl or react-i18next
+Hosting:    Vercel (frontend) + Supabase (backend/DB/storage)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 3. LANGUAGE SUPPORT & INTERNATIONALIZATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Supported UI languages (selectable by user from header):
+  - Arabic (AR) — RTL layout, Noto Sans Arabic font
+  - English (EN) — LTR (default)
+  - French (FR) — LTR
+  - Dutch (NL) — LTR
+  - Spanish (ES) — LTR
+  - German (DE) — LTR
+  - More can be added via i18n config
+
+Rules:
+  - Auto-detect browser language on first visit
+  - Persist language choice in localStorage + user profile
+  - Full RTL flip for Arabic (layout, icons, padding, text alignment)
+  - Story content itself is stored per-language; a story can have versions in 
+    multiple languages
+  - TTS audio is generated in the story's original language, but UI is in 
+    the user's chosen interface language
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 4. USER ROLES & AUTHENTICATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Roles:
+  A) Guest       — Browse, read previews only. Cannot listen. Must register.
+  B) User        — Full read + listen access. Bookmarks. Reading history.
+  C) Super Admin — All user permissions + full content management panel.
+                   (Single super admin account — you, the platform owner)
+
+Auth flows:
+  - Email/password signup + email verification
+  - Optional Google OAuth
+  - Super Admin account is seeded directly in the database (not self-registered)
+  - JWT sessions via NextAuth; roles stored in DB and encoded in session token
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 5. CONTENT LIBRARY — STORIES & MOVIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Content types:
+  A) Story       — Text-based narrative (chapters). Supports read + listen.
+  B) Movie       — Embeds a video (YouTube/Vimeo link OR hosted MP4). 
+                   Can have a companion text transcript.
+
+Story data model (database):
+  Story {
+    id, title, slug, description, coverImage,
+    language (AR | EN | FR | NL | ...),
+    category (children | thriller | romance | historical | ...),
+    type (story | movie),
+    tags[], totalChapters, status (draft | published),
+    createdAt, updatedAt, uploadedBy (admin)
+  }
+
+  Chapter {
+    id, storyId, chapterNumber, title,
+    content (plain text, extracted from PDF),
+    audioUrl (generated TTS), duration (seconds),
+    voices [] — list of character voice assignments for this chapter
+  }
+
+  Character {
+    id, storyId, name, role (narrator | protagonist | antagonist | ...),
+    voiceId (ElevenLabs voice ID), tone (calm | tense | warm | aged | ...),
+    gender, language
+  }
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 6. READING EXPERIENCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+- Chapter-by-chapter reader with clean, distraction-free layout
+- Adjustable font size (small / medium / large)
+- Light / dark / sepia reading mode
+- RTL support for Arabic text (automatic when story language = AR)
+- Progress bar showing chapter and overall story completion
+- "Reading position" saved per user per story (resume where you left off)
+- Inline character attribution: when a dialogue line begins, show a small 
+  colored dot/label indicating which character is speaking (visible in read mode)
+- Tap any paragraph to highlight and add a personal note/bookmark
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 7. AUDIO / LISTENING EXPERIENCE (CORE FEATURE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+This is the platform's defining feature. Each story's audio is NOT a single 
+narrator reading a flat script. It is a fully dramatized audio experience:
+
+Voice casting system:
+  - Each story has a cast of characters, each mapped to a unique ElevenLabs voice
+  - The Narrator has a distinct voice (e.g., deep, calm, authoritative)
+  - Each character (protagonist, antagonist, side characters) has their OWN voice 
+    that matches their personality, gender, age, and emotional state in the story
+  - Example: an elder character = slow, gravelly, wise tone; a child = bright, 
+    fast, excited; a villain = low, tense, clipped speech
+
+Audio generation pipeline (triggered by Super Admin after upload):
+  Step 1: PDF uploaded → text extracted per chapter
+  Step 2: Admin annotates the script:
+           - Tags narrator sections: [NARRATOR] ... [/NARRATOR]
+           - Tags character dialogue: [LAYLA emotion="excited"] ... [/LAYLA]
+           - Tags scene transitions: [SCENE: Market at dusk]
+  Step 3: System parses the tagged script
+  Step 4: Each segment is sent to ElevenLabs with the matching voice + 
+           stability/style settings for that character's emotional state
+  Step 5: Audio segments are stitched together (with brief pauses between 
+           speaker transitions) into a single chapter audio file
+  Step 6: Audio file is saved to storage; audioUrl saved to the Chapter record
+
+Audio player UI:
+  - Sticky bottom audio player (like Spotify/Audible)
+  - Shows: cover art thumbnail, story title, chapter name, CURRENT SPEAKER NAME
+    (updates in real time as audio plays — e.g., "Elder Sami is speaking...")
+  - Controls: play/pause, 15s rewind, 15s forward, speed (0.75x / 1x / 1.25x / 1.5x)
+  - Waveform or progress bar with chapter markers
+  - "Read along" toggle: text scrolls and highlights in sync with the audio
+  - Voice cast panel: tap any character chip to preview their voice
+  - Sleep timer option (15 / 30 / 60 min)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 8. SUPER ADMIN PANEL — CONTENT MANAGEMENT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Accessible at /admin — protected by super_admin role check.
+
+Dashboard:
+  - Stats: total stories, total users, listens today, reads today
+  - Recently uploaded stories with status (draft / published / audio pending)
+
+Story Upload Workflow:
+  Step 1 — Upload PDF
+    - Drag & drop or file picker (PDF only, max 50MB)
+    - System auto-extracts text using pdf-parse
+    - Admin reviews and corrects extracted text in an inline editor
+
+  Step 2 — Story Details
+    - Title, cover image, description, category, language, tags
+    - Content type: Story or Movie
+
+  Step 3 — Character & Voice Setup
+    - Admin defines the cast: name, role, gender, personality/tone
+    - For each character, select a voice from ElevenLabs voice library 
+      (dropdown with preview playback)
+    - Set speaking style: stability, similarity boost, style exaggeration
+
+  Step 4 — Script Annotation
+    - Web-based annotation tool in admin panel
+    - Admin marks narrator blocks vs character dialogue blocks
+    - For each dialogue block: select character + emotion tag 
+      (neutral / happy / sad / angry / scared / excited / whispering)
+    - Scene transition markers (brief pause + ambient sound option)
+
+  Step 5 — Audio Generation
+    - "Generate Audio" button triggers the backend pipeline
+    - Progress indicator per chapter
+    - Admin can regenerate individual segments if needed
+    - Preview full chapter audio before publishing
+
+  Step 6 — Publish
+    - Toggle story from Draft → Published
+    - Set visibility: all users / registered users only / specific language groups
+
+Other admin features:
+  - Edit / delete any story or chapter
+  - User management: view registered users, suspend accounts
+  - Category and tag management
+  - Upload background music tracks (optional ambient layer under narration)
+  - Analytics: per-story listen counts, read counts, drop-off points
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 9. PAGES & NAVIGATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Public pages:
+  /                  — Home: featured stories, categories, language filter
+  /library           — Full story/movie library with filters + search
+  /story/[slug]      — Story detail page (cover, description, cast, chapters)
+  /story/[slug]/read/[chapterNumber]  — Reader view
+  /movies            — Movie library
+  /login             — Login page
+  /register          — Registration page
+
+Authenticated user pages:
+  /profile           — User profile, reading history, bookmarks
+  /continue          — Resume last unfinished story
+
+Admin pages:
+  /admin             — Dashboard
+  /admin/upload      — New story upload wizard
+  /admin/stories     — Story management table
+  /admin/stories/[id]/edit  — Edit story details, chapters, voices
+  /admin/users       — User list
+  /admin/analytics   — Usage stats
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 10. DESIGN SYSTEM & UI GUIDELINES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Aesthetic: Cinematic dark luxury. Evokes a rich, magical library at night.
+
+Primary palette:
+  Deep Purple: #1a0a2e (app background, navbars)
+  Royal Violet: #8b5cf6 (accent, buttons, active states)
+  Gold:         #e8c97e (highlights, featured badges, logo accent)
+  Off-white:    #f5f0ff (body text on dark)
+  Muted:        rgba(255,255,255,0.5) (secondary text on dark)
+  Card surface: #241048 (cards on dark bg)
+
+Typography:
+  Display/titles: "Playfair Display" (for English/French/Dutch)
+  Arabic text: "Noto Sans Arabic" or "Cairo"
+  Body reading: "Lora" (serif, excellent for long-form reading)
+  UI elements: "Inter" or system-ui
+
+Mobile-first rules:
+  - Base layout built for 375px – 430px viewport width
+  - Bottom navigation bar (4 tabs: Home, Library, My Shelf, Profile)
+  - No horizontal scroll except in carousels
+  - Touch targets minimum 44x44px
+  - Sticky audio player above bottom nav when a story is playing
+  - Responsive breakpoints: sm (640px), md (768px), lg (1024px)
+  - On desktop: sidebar navigation replaces bottom nav
+
+Accessibility:
+  - WCAG AA contrast on all text
+  - Keyboard-navigable
+  - ARIA labels on all interactive elements
+  - Screen reader compatible audio controls
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 11. THIRD-PARTY INTEGRATIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+ElevenLabs API:
+  - Endpoint: POST /v1/text-to-speech/{voice_id}
+  - Use streaming for long segments
+  - Cache generated audio in S3/Supabase Storage
+  - Store voice IDs per character in the database
+
+PDF Parsing (Node.js):
+  - Library: pdf-parse
+  - Extract full text per page, then merge into chapters
+
+Audio stitching:
+  - Use ffmpeg (via fluent-ffmpeg in Node.js) to concatenate audio segments
+  - Add 300ms silence between speaker changes
+  - Optional: add low-volume ambient background music track
+
+Analytics:
+  - Use Plausible or PostHog for privacy-friendly analytics
+  - Track: story views, chapter completions, listen duration, language used
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 12. SECURITY & PERFORMANCE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Security:
+  - All admin routes protected with middleware role check
+  - PDF uploads validated (MIME type, file size, virus scan via ClamAV optional)
+  - Audio URLs signed (expire after 1 hour) — prevent hotlinking
+  - Rate limiting on auth endpoints (10 req/min)
+  - CORS configured to allow only your domain
+
+Performance:
+  - Story cover images: next/image with WebP optimization
+  - Audio: streamed (range requests) — never downloaded fully upfront
+  - Lazy load story cards (Intersection Observer)
+  - CDN caching on all static assets and audio files
+  - Server-side rendering for story detail pages (SEO)
+  - Static generation for home + library pages (ISR, revalidate every 60s)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ 13. MVP FEATURE PRIORITY (BUILD ORDER)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Phase 1 — Core (Launch):
+  ✅ Auth (register, login, roles)
+  ✅ Admin PDF upload + text extraction
+  ✅ Story create/edit/publish
+  ✅ Library page with filter/search
+  ✅ Reader view (read mode)
+  ✅ Basic audio player (single narrator voice)
+  ✅ Arabic + English UI
+
+Phase 2 — Voice Drama:
+  ✅ Character voice setup in admin
+  ✅ Script annotation tool
+  ✅ Multi-voice audio generation pipeline
+  ✅ Real-time speaker indicator in player
+  ✅ Read-along sync
+
+Phase 3 — Scale:
+  ✅ All 6+ languages
+  ✅ Movies section
+  ✅ Bookmarks + notes
+  ✅ Push notifications (new story alerts)
+  ✅ Analytics dashboard
+  ✅ Offline reading (PWA)

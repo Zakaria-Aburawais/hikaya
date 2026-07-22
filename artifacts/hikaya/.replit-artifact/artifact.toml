@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Hikāya · حكاية"
+version = "1.0.0"
+id = "artifacts/hikaya"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 22234
+
+[services.development]
+run = "pnpm --filter @workspace/hikaya run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/hikaya", "run", "build" ]
+publicDir = "artifacts/hikaya/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "22234"
+BASE_PATH = "/"

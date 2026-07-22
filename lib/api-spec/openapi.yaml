@@ -1,0 +1,848 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Hikāya API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: Auth
+    description: Browser authentication endpoints.
+  - name: stories
+    description: Stories, chapters, characters
+  - name: admin
+    description: Admin-only operations
+  - name: me
+    description: Current user data
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /auth/user:
+    get:
+      tags: [Auth]
+      operationId: getCurrentAuthUser
+      summary: Get the currently authenticated user
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+        - $ref: '#/components/parameters/SessionCookie'
+      responses:
+        '200':
+          description: Auth status resolved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUserEnvelope'
+  /login:
+    get:
+      tags: [Auth]
+      operationId: beginBrowserLogin
+      summary: Start the browser OIDC login flow
+      parameters:
+        - name: returnTo
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to the OIDC authorization endpoint.
+  /callback:
+    get:
+      tags: [Auth]
+      operationId: handleBrowserLoginCallback
+      summary: Complete the browser OIDC login flow
+      parameters:
+        - name: code
+          in: query
+          required: false
+          schema: { type: string }
+        - name: state
+          in: query
+          required: false
+          schema: { type: string }
+        - name: iss
+          in: query
+          required: false
+          schema: { type: string, format: uri }
+      responses:
+        '302':
+          description: Redirect.
+  /logout:
+    get:
+      tags: [Auth]
+      operationId: logoutBrowserSession
+      summary: Logout
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+        - $ref: '#/components/parameters/SessionCookie'
+      responses:
+        '302':
+          description: Redirect to OIDC logout.
+  /mobile-auth/token-exchange:
+    post:
+      tags: [Auth]
+      operationId: exchangeMobileAuthorizationCode
+      summary: Exchange a mobile OIDC code for a session token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MobileTokenExchangeRequest'
+      responses:
+        '200':
+          description: Session created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MobileTokenExchangeSuccess'
+        '400':
+          description: Invalid input.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '401':
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+        '500':
+          description: Server error.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /mobile-auth/logout:
+    post:
+      tags: [Auth]
+      operationId: logoutMobileSession
+      summary: Mobile logout
+      parameters:
+        - $ref: '#/components/parameters/AuthorizationSessionHeader'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LogoutSuccess'
+
+  /me/preferences:
+    patch:
+      tags: [me]
+      operationId: updateMyPreferences
+      summary: Update preferred UI language
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePreferencesBody'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthUser'
+
+  /stories:
+    get:
+      tags: [stories]
+      operationId: listStories
+      summary: List stories
+      parameters:
+        - name: language
+          in: query
+          required: false
+          schema: { type: string }
+        - name: category
+          in: query
+          required: false
+          schema: { type: string }
+        - name: type
+          in: query
+          required: false
+          schema: { type: string }
+        - name: q
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Story'
+
+  /stories/{slug}:
+    get:
+      tags: [stories]
+      operationId: getStoryBySlug
+      summary: Get story by slug with cast and chapter list
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StoryDetail'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /stories/{slug}/chapters/{chapterNumber}:
+    get:
+      tags: [stories]
+      operationId: getChapter
+      summary: Get a chapter
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          schema: { type: string }
+        - name: chapterNumber
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChapterDetail'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /me/progress:
+    get:
+      tags: [me]
+      operationId: listMyProgress
+      summary: Continue-reading list
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProgressEntry'
+    post:
+      tags: [me]
+      operationId: upsertMyProgress
+      summary: Save reading progress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpsertProgressBody'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProgressEntry'
+
+  /me/bookmarks:
+    get:
+      tags: [me]
+      operationId: listMyBookmarks
+      summary: Bookmarked stories
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Story'
+    post:
+      tags: [me]
+      operationId: toggleBookmark
+      summary: Toggle bookmark on a story
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ToggleBookmarkBody'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ToggleBookmarkResult'
+
+  /admin/voices:
+    get:
+      tags: [admin]
+      operationId: listVoices
+      summary: List available ElevenLabs voices
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VoiceOption'
+
+  /admin/stories:
+    get:
+      tags: [admin]
+      operationId: adminListStories
+      summary: List all stories (admin)
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Story'
+    post:
+      tags: [admin]
+      operationId: createStory
+      summary: Create story
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStoryBody'
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Story'
+
+  /admin/stories/{id}:
+    patch:
+      tags: [admin]
+      operationId: updateStory
+      summary: Update story
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStoryBody'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Story'
+    delete:
+      tags: [admin]
+      operationId: deleteStory
+      summary: Delete story
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: deleted
+
+  /admin/stories/{id}/characters:
+    post:
+      tags: [admin]
+      operationId: createCharacter
+      summary: Add character to story
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCharacterBody'
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Character'
+
+  /admin/characters/{id}:
+    delete:
+      tags: [admin]
+      operationId: deleteCharacter
+      summary: Delete character
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: deleted
+
+  /admin/stories/{id}/chapters:
+    post:
+      tags: [admin]
+      operationId: createChapter
+      summary: Add chapter to story
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateChapterBody'
+      responses:
+        '201':
+          description: created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chapter'
+
+  /admin/chapters/{id}:
+    patch:
+      tags: [admin]
+      operationId: updateChapter
+      summary: Update chapter (content, segments, title)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateChapterBody'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chapter'
+    delete:
+      tags: [admin]
+      operationId: deleteChapter
+      summary: Delete chapter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '204':
+          description: deleted
+
+  /admin/chapters/{id}/generate-audio:
+    post:
+      tags: [admin]
+      operationId: generateChapterAudio
+      summary: Generate multi-voice audio for all segments in a chapter
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateAudioResult'
+
+  /admin/parse-pdf:
+    post:
+      tags: [admin]
+      operationId: parsePdf
+      summary: Extract text from a PDF (base64 encoded)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParsePdfBody'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParsePdfResult'
+
+  /admin/stats:
+    get:
+      tags: [admin]
+      operationId: adminStats
+      summary: Admin dashboard stats
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminStats'
+
+components:
+  parameters:
+    AuthorizationSessionHeader:
+      name: Authorization
+      in: header
+      required: false
+      description: Opaque session token — `Bearer <sid>`.
+      schema:
+        type: string
+    SessionCookie:
+      name: sid
+      in: cookie
+      required: false
+      description: Browser session cookie.
+      schema:
+        type: string
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required: [status]
+
+    AuthUser:
+      type: object
+      required: [id, email, firstName, lastName, profileImageUrl, role, preferredLanguage]
+      properties:
+        id: { type: string }
+        email: { type: [string, 'null'], format: email }
+        firstName: { type: [string, 'null'] }
+        lastName: { type: [string, 'null'] }
+        profileImageUrl: { type: [string, 'null'] }
+        role: { type: string }
+        preferredLanguage: { type: string }
+    AuthUserEnvelope:
+      type: object
+      required: [user]
+      properties:
+        user:
+          oneOf:
+            - $ref: '#/components/schemas/AuthUser'
+            - type: 'null'
+    MobileTokenExchangeRequest:
+      type: object
+      required: [code, code_verifier, redirect_uri, state]
+      properties:
+        code: { type: string, minLength: 1 }
+        code_verifier: { type: string, minLength: 1 }
+        redirect_uri: { type: string, minLength: 1, format: uri }
+        state: { type: string, minLength: 1 }
+        nonce: { type: string, minLength: 1 }
+    MobileTokenExchangeSuccess:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string }
+    LogoutSuccess:
+      type: object
+      required: [success]
+      properties:
+        success: { type: boolean, const: true }
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error: { type: string }
+
+    UpdatePreferencesBody:
+      type: object
+      required: [preferredLanguage]
+      properties:
+        preferredLanguage:
+          type: string
+
+    Story:
+      type: object
+      required: [id, slug, title, description, language, category, type, tags, status, accentColor, createdAt]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        title: { type: string }
+        description: { type: string }
+        coverImage: { type: [string, 'null'] }
+        language: { type: string }
+        category: { type: string }
+        type: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        status: { type: string }
+        videoUrl: { type: [string, 'null'] }
+        accentColor: { type: string }
+        createdAt: { type: string, format: date-time }
+        chapterCount: { type: integer }
+    Character:
+      type: object
+      required: [id, storyId, name, role, voiceId, tone, color, stability, similarity, style]
+      properties:
+        id: { type: string }
+        storyId: { type: string }
+        name: { type: string }
+        role: { type: string }
+        voiceId: { type: string }
+        tone: { type: string }
+        color: { type: string }
+        stability: { type: integer }
+        similarity: { type: integer }
+        style: { type: integer }
+    Chapter:
+      type: object
+      required: [id, storyId, chapterNumber, title, content, segments, durationSec]
+      properties:
+        id: { type: string }
+        storyId: { type: string }
+        chapterNumber: { type: integer }
+        title: { type: string }
+        content: { type: string }
+        segments:
+          type: array
+          items: { $ref: '#/components/schemas/ScriptSegment' }
+        durationSec: { type: integer }
+        hasAudio: { type: boolean }
+    ChapterSummary:
+      type: object
+      required: [id, chapterNumber, title, durationSec, hasAudio]
+      properties:
+        id: { type: string }
+        chapterNumber: { type: integer }
+        title: { type: string }
+        durationSec: { type: integer }
+        hasAudio: { type: boolean }
+    StoryDetail:
+      type: object
+      required: [story, characters, chapters]
+      properties:
+        story:
+          $ref: '#/components/schemas/Story'
+        characters:
+          type: array
+          items: { $ref: '#/components/schemas/Character' }
+        chapters:
+          type: array
+          items: { $ref: '#/components/schemas/ChapterSummary' }
+        bookmarked: { type: boolean }
+        progress:
+          oneOf:
+            - $ref: '#/components/schemas/ProgressEntry'
+            - type: 'null'
+    ChapterDetail:
+      type: object
+      required: [story, chapter, characters]
+      properties:
+        story: { $ref: '#/components/schemas/Story' }
+        chapter: { $ref: '#/components/schemas/Chapter' }
+        characters:
+          type: array
+          items: { $ref: '#/components/schemas/Character' }
+        nextChapterNumber: { type: [integer, 'null'] }
+        prevChapterNumber: { type: [integer, 'null'] }
+
+    ScriptSegment:
+      type: object
+      required: [index, kind, characterName, emotion, text]
+      properties:
+        index: { type: integer }
+        kind:
+          type: string
+          enum: [narrator, dialogue, scene]
+        characterId: { type: [string, 'null'] }
+        characterName: { type: string }
+        emotion: { type: string }
+        text: { type: string }
+        audioUrl: { type: [string, 'null'] }
+
+    ProgressEntry:
+      type: object
+      required: [storyId, chapterNumber, progressPercent, updatedAt, story]
+      properties:
+        storyId: { type: string }
+        chapterNumber: { type: integer }
+        progressPercent: { type: integer }
+        updatedAt: { type: string, format: date-time }
+        story: { $ref: '#/components/schemas/Story' }
+    UpsertProgressBody:
+      type: object
+      required: [storyId, chapterNumber, progressPercent]
+      properties:
+        storyId: { type: string }
+        chapterNumber: { type: integer }
+        progressPercent: { type: integer }
+    ToggleBookmarkBody:
+      type: object
+      required: [storyId]
+      properties:
+        storyId: { type: string }
+    ToggleBookmarkResult:
+      type: object
+      required: [bookmarked]
+      properties:
+        bookmarked: { type: boolean }
+
+    VoiceOption:
+      type: object
+      required: [voiceId, name]
+      properties:
+        voiceId: { type: string }
+        name: { type: string }
+        category: { type: [string, 'null'] }
+        description: { type: [string, 'null'] }
+        previewUrl: { type: [string, 'null'] }
+        gender: { type: [string, 'null'] }
+        language: { type: [string, 'null'] }
+
+    CreateStoryBody:
+      type: object
+      required: [title, slug, language, category, type]
+      properties:
+        title: { type: string }
+        slug: { type: string }
+        description: { type: string }
+        coverImage: { type: [string, 'null'] }
+        language: { type: string }
+        category: { type: string }
+        type: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        videoUrl: { type: [string, 'null'] }
+        accentColor: { type: string }
+    UpdateStoryBody:
+      type: object
+      properties:
+        title: { type: string }
+        slug: { type: string }
+        description: { type: string }
+        coverImage: { type: [string, 'null'] }
+        language: { type: string }
+        category: { type: string }
+        type: { type: string }
+        tags:
+          type: array
+          items: { type: string }
+        status: { type: string }
+        videoUrl: { type: [string, 'null'] }
+        accentColor: { type: string }
+    CreateCharacterBody:
+      type: object
+      required: [name, voiceId]
+      properties:
+        name: { type: string }
+        role: { type: string }
+        voiceId: { type: string }
+        tone: { type: string }
+        color: { type: string }
+        stability: { type: integer }
+        similarity: { type: integer }
+        style: { type: integer }
+    CreateChapterBody:
+      type: object
+      required: [chapterNumber, title]
+      properties:
+        chapterNumber: { type: integer }
+        title: { type: string }
+        content: { type: string }
+        segments:
+          type: array
+          items: { $ref: '#/components/schemas/ScriptSegment' }
+    UpdateChapterBody:
+      type: object
+      properties:
+        title: { type: string }
+        content: { type: string }
+        segments:
+          type: array
+          items: { $ref: '#/components/schemas/ScriptSegment' }
+    GenerateAudioResult:
+      type: object
+      required: [generatedSegments, totalSegments]
+      properties:
+        generatedSegments: { type: integer }
+        totalSegments: { type: integer }
+        message: { type: string }
+    ParsePdfBody:
+      type: object
+      required: [base64]
+      properties:
+        base64: { type: string }
+        filename: { type: string }
+    ParsePdfResult:
+      type: object
+      required: [text, pages]
+      properties:
+        text: { type: string }
+        pages: { type: integer }
+
+    AdminStats:
+      type: object
+      required: [totalStories, totalUsers, totalChapters, audioSegments]
+      properties:
+        totalStories: { type: integer }
+        totalUsers: { type: integer }
+        totalChapters: { type: integer }
+        audioSegments: { type: integer }

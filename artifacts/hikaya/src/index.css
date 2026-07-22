@@ -1,0 +1,173 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-gold: hsl(var(--gold));
+  --color-violet: hsl(var(--violet));
+
+  --font-display: "Playfair Display", "Cairo", serif;
+  --font-reading: "Lora", "Noto Sans Arabic", serif;
+  --font-arabic: "Noto Sans Arabic", "Cairo", "Lora", serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+}
+
+:root {
+  /* Cinematic dark luxury — used as default everywhere */
+  --background: 264 60% 11%;       /* #1a0a2e deep purple */
+  --foreground: 270 100% 97%;      /* #f5f0ff off-white */
+
+  --card: 264 60% 17%;             /* #241048 surface */
+  --card-foreground: 270 100% 97%;
+
+  --popover: 264 60% 14%;
+  --popover-foreground: 270 100% 97%;
+
+  --primary: 258 90% 66%;          /* #8b5cf6 royal violet */
+  --primary-foreground: 270 100% 99%;
+
+  --secondary: 264 50% 22%;
+  --secondary-foreground: 270 100% 97%;
+
+  --muted: 264 40% 22%;
+  --muted-foreground: 270 30% 75%;
+
+  --accent: 41 70% 70%;            /* #e8c97e gold */
+  --accent-foreground: 264 60% 11%;
+
+  --destructive: 0 75% 55%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 264 50% 25%;
+  --input: 264 50% 22%;
+  --ring: 258 90% 66%;
+
+  --gold: 41 70% 70%;
+  --violet: 258 90% 66%;
+
+  --radius: 14px;
+}
+
+* { border-color: hsl(var(--border)); }
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  background-image:
+    radial-gradient(1200px 600px at 80% -10%, rgba(139, 92, 246, 0.18), transparent 60%),
+    radial-gradient(800px 500px at -10% 20%, rgba(232, 201, 126, 0.08), transparent 60%),
+    radial-gradient(900px 700px at 50% 110%, rgba(139, 92, 246, 0.12), transparent 60%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+[dir="rtl"] body, .lang-ar {
+  font-family: var(--font-arabic);
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+.font-reading {
+  font-family: var(--font-reading);
+}
+
+.font-arabic {
+  font-family: var(--font-arabic);
+}
+
+/* Glassy card surface */
+.glass {
+  background: linear-gradient(180deg, rgba(36, 16, 72, 0.85), rgba(26, 10, 46, 0.7));
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(232, 201, 126, 0.12);
+}
+
+.gold-text {
+  background: linear-gradient(135deg, #f5e6b1 0%, #e8c97e 50%, #c9a352 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.violet-glow {
+  box-shadow: 0 10px 40px -10px rgba(139, 92, 246, 0.55);
+}
+
+/* Hide scrollbars on horizontal carousels */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+
+/* Reading modes */
+.reading-light {
+  background: #f8f4ec !important;
+  color: #2b2418 !important;
+}
+.reading-sepia {
+  background: #f1e5cf !important;
+  color: #3a2c12 !important;
+}
+.reading-dark {
+  background: #0e0820 !important;
+  color: #efe7ff !important;
+}
+
+@keyframes pulseSpeaker {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+}
+.speaker-dot {
+  animation: pulseSpeaker 1.2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -1000px 0; }
+  100% { background-position: 1000px 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.04) 100%);
+  background-size: 1000px 100%;
+  animation: shimmer 2s infinite linear;
+}
