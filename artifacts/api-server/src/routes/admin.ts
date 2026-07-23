@@ -47,7 +47,9 @@ router.get("/admin/stories", async (_req, res): Promise<void> => {
       videoUrl: storiesTable.videoUrl,
       accentColor: storiesTable.accentColor,
       createdAt: storiesTable.createdAt,
-      chapterCount: sql<number>`(select count(*)::int from ${chaptersTable} where ${chaptersTable.storyId} = ${storiesTable.id})`,
+      // Raw qualified names — see stories.ts: drizzle dequalifies interpolated
+      // columns inside subqueries.
+      chapterCount: sql<number>`(select count(*)::int from chapters where chapters.story_id = stories.id)`,
     })
     .from(storiesTable)
     .orderBy(desc(storiesTable.createdAt));

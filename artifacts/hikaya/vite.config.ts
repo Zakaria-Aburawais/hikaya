@@ -66,6 +66,14 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    // Local dev: forward /api to the api-server (Replit's reverse proxy used
+    // to do this). API_ORIGIN overrides the default port.
+    proxy: {
+      "/api": {
+        target: process.env.API_ORIGIN ?? "http://localhost:3001",
+        changeOrigin: true,
+      },
+    },
   },
   preview: {
     port,

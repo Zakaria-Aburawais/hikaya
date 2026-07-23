@@ -45,7 +45,10 @@ router.get("/stories", async (req, res): Promise<void> => {
       videoUrl: storiesTable.videoUrl,
       accentColor: storiesTable.accentColor,
       createdAt: storiesTable.createdAt,
-      chapterCount: sql<number>`(select count(*)::int from ${chaptersTable} where ${chaptersTable.storyId} = ${storiesTable.id})`,
+      // Raw qualified names: drizzle renders interpolated columns unqualified
+      // inside subqueries, which silently made this correlate against
+      // chapters.id and always return 0.
+      chapterCount: sql<number>`(select count(*)::int from chapters where chapters.story_id = stories.id)`,
     })
     .from(storiesTable)
     .where(and(...conditions))
@@ -77,7 +80,7 @@ router.get("/stories/:slug", async (req, res): Promise<void> => {
       chapterNumber: chaptersTable.chapterNumber,
       title: chaptersTable.title,
       durationSec: chaptersTable.durationSec,
-      hasAudio: sql<boolean>`exists(select 1 from ${audioSegmentsTable} where ${audioSegmentsTable.chapterId} = ${chaptersTable.id})`,
+      hasAudio: sql<boolean>`exists(select 1 from audio_segments where audio_segments.chapter_id = chapters.id)`,
     })
     .from(chaptersTable)
     .where(eq(chaptersTable.storyId, story.id))
