@@ -53,6 +53,124 @@ export interface ErrorEnvelope {
   error: string;
 }
 
+export interface OkEnvelope {
+  ok: boolean;
+}
+
+export type NewsletterSubscribeBodySource =
+  (typeof NewsletterSubscribeBodySource)[keyof typeof NewsletterSubscribeBodySource];
+
+export const NewsletterSubscribeBodySource = {
+  newsletter: "newsletter",
+  chapter_gate: "chapter_gate",
+  exit_intent: "exit_intent",
+  waitlist: "waitlist",
+} as const;
+
+export interface NewsletterSubscribeBody {
+  /** @minLength 3 */
+  email: string;
+  source: NewsletterSubscribeBodySource;
+  locale?: string;
+}
+
+export interface MagicLinkRequestBody {
+  /** @minLength 3 */
+  email: string;
+  returnTo?: string;
+}
+
+export interface UrlEnvelope {
+  url: string;
+}
+
+export type CheckoutBodyInterval =
+  (typeof CheckoutBodyInterval)[keyof typeof CheckoutBodyInterval];
+
+export const CheckoutBodyInterval = {
+  monthly: "monthly",
+  annual: "annual",
+} as const;
+
+export interface CheckoutBody {
+  interval: CheckoutBodyInterval;
+}
+
+export interface PurchaseStoryBody {
+  /** @minLength 1 */
+  storyId: string;
+  recipientEmail?: string;
+}
+
+export interface TipBody {
+  storyId?: string;
+  /**
+   * @minimum 100
+   * @maximum 100000
+   */
+  amountCents: number;
+  /** @maxLength 500 */
+  message?: string;
+}
+
+export interface ReferralCodeResult {
+  code: string;
+  url: string;
+}
+
+export interface RedeemReferralBody {
+  /** @minLength 1 */
+  code: string;
+}
+
+export interface RedeemReferralResult {
+  ok: boolean;
+  trialDays: number;
+}
+
+export interface RedeemGiftBody {
+  /** @minLength 1 */
+  token: string;
+}
+
+export interface RedeemGiftResult {
+  ok: boolean;
+  storySlug: string;
+}
+
+export interface SupporterStatus {
+  supporter: boolean;
+}
+
+export interface RateStoryBody {
+  /**
+   * @minimum 1
+   * @maximum 5
+   */
+  stars: number;
+  /** @maxLength 2000 */
+  body?: string;
+}
+
+export interface RatingEntry {
+  stars: number;
+  /** @nullable */
+  body?: string | null;
+  /** @nullable */
+  firstName?: string | null;
+  createdAt: string;
+}
+
+export interface RatingSummary {
+  /** @nullable */
+  ratingAvg: number | null;
+  ratingCount: number;
+}
+
+export interface StreakResult {
+  days: number;
+}
+
 export interface UpdatePreferencesBody {
   preferredLanguage: string;
 }
@@ -72,6 +190,13 @@ export interface Story {
   /** @nullable */
   videoUrl?: string | null;
   accentColor: string;
+  access?: string;
+  /** @nullable */
+  priceCents?: number | null;
+  previewChapterCount?: number;
+  /** @nullable */
+  ratingAvg?: number | null;
+  ratingCount?: number;
   createdAt: string;
   chapterCount?: number;
 }
@@ -108,6 +233,7 @@ export interface ScriptSegment {
   text: string;
   /** @nullable */
   audioUrl?: string | null;
+  locked?: boolean;
 }
 
 export interface Chapter {
@@ -153,6 +279,7 @@ export interface ChapterDetail {
   nextChapterNumber?: number | null;
   /** @nullable */
   prevChapterNumber?: number | null;
+  unlocked?: boolean;
 }
 
 export interface UpsertProgressBody {
@@ -275,6 +402,11 @@ export type HandleBrowserLoginCallbackParams = {
   code?: string;
   state?: string;
   iss?: string;
+};
+
+export type VerifyMagicLinkParams = {
+  token: string;
+  returnTo?: string;
 };
 
 export type ListStoriesParams = {

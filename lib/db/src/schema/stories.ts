@@ -4,6 +4,7 @@ import {
   varchar,
   text,
   integer,
+  boolean,
   timestamp,
   jsonb,
   uniqueIndex,
@@ -33,6 +34,14 @@ export const storiesTable = pgTable(
     status: varchar("status").notNull().default("draft"),
     videoUrl: text("video_url"),
     accentColor: varchar("accent_color").notNull().default("#8b5cf6"),
+    access: varchar("access").notNull().default("premium"), // free | premium | purchasable
+    priceCents: integer("price_cents"),
+    previewChapterCount: integer("preview_chapter_count").notNull().default(1),
+    isFeatured: boolean("is_featured").notNull().default(false),
+    isSponsored: boolean("is_sponsored").notNull().default(false),
+    ratingAvg: integer("rating_avg"), // avg * 10 stored as int
+    ratingCount: integer("rating_count").notNull().default(0),
+    listenCount: integer("listen_count").notNull().default(0),
     uploadedBy: varchar("uploaded_by").references(() => usersTable.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true })

@@ -9,6 +9,7 @@ import {
   readingProgressTable,
   bookmarksTable,
 } from "@workspace/db";
+import { isEntitled, chapterIsPreview } from "../lib/entitlements";
 
 const router: IRouter = Router();
 
@@ -156,13 +157,20 @@ router.get("/stories/:slug/chapters/:chapterNumber", async (req, res): Promise<v
     .where(eq(audioSegmentsTable.chapterId, chapter.id));
   const audioIdxSet = new Set(audioRows.map((r) => r.index));
 
-  const segments = (chapter.segments as any[]).map((s, i) => ({
-    ...s,
-    index: i,
-    audioUrl: audioIdxSet.has(i)
-      ? `/api/audio/${chapter.id}/${i}`
-      : null,
-  }));
+  const userId = req.isAuthenticated() ? req.user.id : null;
+  const isPreview =
+    story.access === "free" || chapter.chapterNumber <= (story.previewChapterCount ?? 1);
+  const unlocked = isAdmin || isPreview || (await isEntitled(userId, story.id));
+
+  const segments = (chapter.segments as any[]).map((s, i) => {
+    const hasAudio = audioIdxSet.has(i);
+    return {
+      ...s,
+      index: i,
+      audioUrl: hasAudio && unlocked ? `/api/audio/${chapter.id}/${i}` : null,
+      locked: hasAudio && !unlocked,
+    };
+  });
 
   const allChapters = await db
     .select({ chapterNumber: chaptersTable.chapterNumber })
@@ -183,6 +191,7 @@ router.get("/stories/:slug/chapters/:chapterNumber", async (req, res): Promise<v
     characters,
     nextChapterNumber: next,
     prevChapterNumber: prev,
+    unlocked,
   });
 });
 
@@ -193,6 +202,21 @@ router.get("/audio/:chapterId/:idx", async (req, res): Promise<void> => {
     res.status(400).json({ error: "Invalid index" });
     return;
   }
+
+  // Server-side paywall: audio bytes only leave through this endpoint, so the
+  // entitlement check here is the single enforcement point (CLAUDE.md rule 1).
+  const isAdmin =
+    req.isAuthenticated() &&
+    (req.user.role === "super_admin" || req.user.role === "admin");
+  if (!isAdmin) {
+    const { isPreview, storyId } = await chapterIsPreview(chapterId);
+    const userId = req.isAuthenticated() ? req.user.id : null;
+    if (!isPreview && !(await isEntitled(userId, storyId))) {
+      res.status(402).json({ error: "payment_required" });
+      return;
+    }
+  }
+
   const [seg] = await db
     .select()
     .from(audioSegmentsTable)
@@ -202,7 +226,8 @@ router.get("/audio/:chapterId/:idx", async (req, res): Promise<void> => {
     return;
   }
   res.setHeader("Content-Type", seg.mimeType);
-  res.setHeader("Cache-Control", "public, max-age=3600");
+  // "private" so shared caches/CDNs can never serve paywalled bytes past the gate.
+  res.setHeader("Cache-Control", "private, max-age=3600");
   res.send(seg.audio);
 });
 

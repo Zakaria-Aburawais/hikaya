@@ -5,6 +5,7 @@ import pinoHttp from "pino-http";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { authMiddleware } from "./middlewares/authMiddleware";
+import { stripeWebhookHandler } from "./routes/billing";
 
 const app: Express = express();
 
@@ -29,6 +30,9 @@ app.use(
 );
 app.use(cors({ credentials: true, origin: true }));
 app.use(cookieParser());
+// Stripe signature verification needs the raw bytes, so the webhook is mounted
+// before the global JSON parser (CLAUDE.md rule 6).
+app.post("/api/billing/webhook", express.raw({ type: "*/*" }), stripeWebhookHandler);
 app.use(express.json({ limit: "60mb" }));
 app.use(express.urlencoded({ extended: true, limit: "60mb" }));
 app.use(authMiddleware);

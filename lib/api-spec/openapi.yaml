@@ -18,6 +18,10 @@ tags:
     description: Admin-only operations
   - name: me
     description: Current user data
+  - name: growth
+    description: Email capture and growth endpoints
+  - name: billing
+    description: Subscriptions, purchases, customer portal
 paths:
   /healthz:
     get:
@@ -93,6 +97,47 @@ paths:
       responses:
         '302':
           description: Redirect to OIDC logout.
+  /auth/magic/request:
+    post:
+      tags: [Auth]
+      operationId: requestMagicLink
+      summary: Email a one-time sign-in link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MagicLinkRequestBody'
+      responses:
+        '200':
+          description: Link sent (always ok to avoid email enumeration)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkEnvelope'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /auth/magic/verify:
+    get:
+      tags: [Auth]
+      operationId: verifyMagicLink
+      summary: Verify a magic-link token and start a session
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema: { type: string }
+        - name: returnTo
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '302':
+          description: Session started, redirect into the app.
   /mobile-auth/token-exchange:
     post:
       tags: [Auth]
@@ -542,6 +587,279 @@ paths:
               schema:
                 $ref: '#/components/schemas/AdminStats'
 
+  /billing/checkout:
+    post:
+      tags: [billing]
+      operationId: createCheckout
+      summary: Start a Plus subscription checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutBody'
+      responses:
+        '200':
+          description: Redirect URL to the provider checkout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlEnvelope'
+        '401':
+          description: Not signed in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /billing/portal:
+    post:
+      tags: [billing]
+      operationId: createBillingPortal
+      summary: Open the customer portal (manage/cancel)
+      responses:
+        '200':
+          description: Redirect URL to the provider portal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlEnvelope'
+        '400':
+          description: No billing customer yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /purchases/story:
+    post:
+      tags: [billing]
+      operationId: purchaseStory
+      summary: Buy a single story unlock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseStoryBody'
+      responses:
+        '200':
+          description: Redirect URL to the provider checkout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlEnvelope'
+        '404':
+          description: Story not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
+  /tips:
+    post:
+      tags: [billing]
+      operationId: createTip
+      summary: Tip a story (one-time checkout)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TipBody'
+      responses:
+        '200':
+          description: Redirect URL to the provider checkout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlEnvelope'
+  /referrals/code:
+    get:
+      tags: [growth]
+      operationId: getMyReferralCode
+      summary: Get (or create) my referral code
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralCodeResult'
+  /referrals/redeem:
+    post:
+      tags: [growth]
+      operationId: redeemReferral
+      summary: Redeem a referral code (14 days of Plus for both sides)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedeemReferralBody'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedeemReferralResult'
+        '400':
+          description: Invalid code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /gifts/redeem:
+    post:
+      tags: [billing]
+      operationId: redeemGift
+      summary: Redeem a gifted story
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedeemGiftBody'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedeemGiftResult'
+        '400':
+          description: Invalid or already-redeemed gift
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /stories/{id}/ratings:
+    get:
+      tags: [stories]
+      operationId: listStoryRatings
+      summary: Ratings & reviews for a story
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RatingEntry'
+    post:
+      tags: [stories]
+      operationId: rateStory
+      summary: Rate a story (one rating per user, upserted)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateStoryBody'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingSummary'
+        '404':
+          description: Story not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /voices/{voiceId}/preview:
+    get:
+      tags: [stories]
+      operationId: getVoicePreview
+      summary: Redirect to a short sample of a voice
+      parameters:
+        - name: voiceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '302':
+          description: Redirect to the sample audio.
+        '404':
+          description: No preview available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /me/streak:
+    get:
+      tags: [me]
+      operationId: getMyStreak
+      summary: Consecutive active-day streak
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreakResult'
+  /me/supporter:
+    get:
+      tags: [me]
+      operationId: getMySupporterStatus
+      summary: Whether the current user has ever tipped
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupporterStatus'
+
+  /sitemap.xml:
+    get:
+      tags: [growth]
+      operationId: getSitemap
+      summary: Sitemap of published stories (XML)
+      responses:
+        '200':
+          description: ok
+          content:
+            application/xml:
+              schema: { type: string }
+
+  /newsletter/subscribe:
+    post:
+      tags: [growth]
+      operationId: subscribeNewsletter
+      summary: Subscribe an email to the newsletter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewsletterSubscribeBody'
+      responses:
+        '200':
+          description: Subscribed (idempotent)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkEnvelope'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
 components:
   parameters:
     AuthorizationSessionHeader:
@@ -609,6 +927,112 @@ components:
       required: [error]
       properties:
         error: { type: string }
+    OkEnvelope:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+
+    NewsletterSubscribeBody:
+      type: object
+      required: [email, source]
+      properties:
+        email: { type: string, format: email, minLength: 3 }
+        source:
+          type: string
+          enum: [newsletter, chapter_gate, exit_intent, waitlist]
+        locale: { type: string }
+
+    MagicLinkRequestBody:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email, minLength: 3 }
+        returnTo: { type: string }
+
+    UrlEnvelope:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string }
+    CheckoutBody:
+      type: object
+      required: [interval]
+      properties:
+        interval:
+          type: string
+          enum: [monthly, annual]
+    PurchaseStoryBody:
+      type: object
+      required: [storyId]
+      properties:
+        storyId: { type: string, minLength: 1 }
+        recipientEmail: { type: string, format: email }
+    TipBody:
+      type: object
+      required: [amountCents]
+      properties:
+        storyId: { type: string }
+        amountCents: { type: integer, minimum: 100, maximum: 100000 }
+        message: { type: string, maxLength: 500 }
+    ReferralCodeResult:
+      type: object
+      required: [code, url]
+      properties:
+        code: { type: string }
+        url: { type: string }
+    RedeemReferralBody:
+      type: object
+      required: [code]
+      properties:
+        code: { type: string, minLength: 1 }
+    RedeemReferralResult:
+      type: object
+      required: [ok, trialDays]
+      properties:
+        ok: { type: boolean }
+        trialDays: { type: integer }
+    RedeemGiftBody:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, minLength: 1 }
+    RedeemGiftResult:
+      type: object
+      required: [ok, storySlug]
+      properties:
+        ok: { type: boolean }
+        storySlug: { type: string }
+    SupporterStatus:
+      type: object
+      required: [supporter]
+      properties:
+        supporter: { type: boolean }
+    RateStoryBody:
+      type: object
+      required: [stars]
+      properties:
+        stars: { type: integer, minimum: 1, maximum: 5 }
+        body: { type: string, maxLength: 2000 }
+    RatingEntry:
+      type: object
+      required: [stars, createdAt]
+      properties:
+        stars: { type: integer }
+        body: { type: [string, 'null'] }
+        firstName: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+    RatingSummary:
+      type: object
+      required: [ratingAvg, ratingCount]
+      properties:
+        ratingAvg: { type: [integer, 'null'] }
+        ratingCount: { type: integer }
+    StreakResult:
+      type: object
+      required: [days]
+      properties:
+        days: { type: integer }
 
     UpdatePreferencesBody:
       type: object
@@ -635,6 +1059,11 @@ components:
         status: { type: string }
         videoUrl: { type: [string, 'null'] }
         accentColor: { type: string }
+        access: { type: string }
+        priceCents: { type: [integer, 'null'] }
+        previewChapterCount: { type: integer }
+        ratingAvg: { type: [integer, 'null'] }
+        ratingCount: { type: integer }
         createdAt: { type: string, format: date-time }
         chapterCount: { type: integer }
     Character:
@@ -702,6 +1131,7 @@ components:
           items: { $ref: '#/components/schemas/Character' }
         nextChapterNumber: { type: [integer, 'null'] }
         prevChapterNumber: { type: [integer, 'null'] }
+        unlocked: { type: boolean }
 
     ScriptSegment:
       type: object
@@ -716,6 +1146,7 @@ components:
         emotion: { type: string }
         text: { type: string }
         audioUrl: { type: [string, 'null'] }
+        locked: { type: boolean }
 
     ProgressEntry:
       type: object

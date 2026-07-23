@@ -34,6 +34,7 @@ type PlayerState = {
   currentIndex: number;
   isPlaying: boolean;
   speed: number;
+  sleepMinutes: number | null;
   load: (story: PlayerStory, segments: PlayerSegment[], startIndex?: number) => void;
   play: () => void;
   pause: () => void;
@@ -42,6 +43,7 @@ type PlayerState = {
   prev: () => void;
   seekToSegment: (i: number) => void;
   setSpeed: (s: number) => void;
+  setSleepTimer: (minutes: number | null) => void;
   close: () => void;
   audioEl: HTMLAudioElement | null;
 };
@@ -54,7 +56,9 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speed, setSpeedState] = useState(1);
+  const [sleepMinutes, setSleepMinutes] = useState<number | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const sleepTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Lazily init audio element
   useEffect(() => {
@@ -176,12 +180,61 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
     if (audioRef.current) audioRef.current.playbackRate = s;
   }, []);
 
+  const setSleepTimer = useCallback((minutes: number | null) => {
+    setSleepMinutes(minutes);
+    if (sleepTimeoutRef.current) {
+      clearTimeout(sleepTimeoutRef.current);
+      sleepTimeoutRef.current = null;
+    }
+    if (minutes) {
+      sleepTimeoutRef.current = setTimeout(() => {
+        audioRef.current?.pause();
+        setIsPlaying(false);
+        setSleepMinutes(null);
+        sleepTimeoutRef.current = null;
+      }, minutes * 60 * 1000);
+    }
+  }, []);
+
+  // Lock-screen / background controls via the MediaSession API.
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+    if (!story) return;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: story.chapterTitle,
+      artist: story.storyTitle,
+      album: "Hikāya",
+      artwork: story.coverImage
+        ? [{ src: story.coverImage, sizes: "512x512", type: "image/png" }]
+        : [],
+    });
+  }, [story]);
+
+  useEffect(() => {
+    if (!("mediaSession" in navigator)) return;
+    navigator.mediaSession.setActionHandler("play", () => play());
+    navigator.mediaSession.setActionHandler("pause", () => pause());
+    navigator.mediaSession.setActionHandler("nexttrack", () => next());
+    navigator.mediaSession.setActionHandler("previoustrack", () => prev());
+    return () => {
+      navigator.mediaSession.setActionHandler("play", null);
+      navigator.mediaSession.setActionHandler("pause", null);
+      navigator.mediaSession.setActionHandler("nexttrack", null);
+      navigator.mediaSession.setActionHandler("previoustrack", null);
+    };
+  }, [play, pause, next, prev]);
+
   const close = useCallback(() => {
     audioRef.current?.pause();
     setIsPlaying(false);
     setStory(null);
     setSegments([]);
     setCurrentIndex(0);
+    if (sleepTimeoutRef.current) {
+      clearTimeout(sleepTimeoutRef.current);
+      sleepTimeoutRef.current = null;
+    }
+    setSleepMinutes(null);
   }, []);
 
   const value = useMemo<PlayerState>(
@@ -191,6 +244,7 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       currentIndex,
       isPlaying,
       speed,
+      sleepMinutes,
       load,
       play,
       pause,
@@ -199,10 +253,11 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
       prev,
       seekToSegment,
       setSpeed,
+      setSleepTimer,
       close,
       audioEl: audioRef.current,
     }),
-    [story, segments, currentIndex, isPlaying, speed, load, play, pause, toggle, next, prev, seekToSegment, setSpeed, close],
+    [story, segments, currentIndex, isPlaying, speed, sleepMinutes, load, play, pause, toggle, next, prev, seekToSegment, setSpeed, setSleepTimer, close],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

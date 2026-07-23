@@ -3,6 +3,10 @@ import { useGetStoryBySlug, useToggleBookmark, getGetStoryBySlugQueryKey } from 
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@workspace/replit-auth-web";
 import { useI18n } from "@/lib/i18n";
+import { StorySeo } from "@/components/StorySeo";
+import { TipButton } from "@/components/TipButton";
+import { GiftStoryForm } from "@/components/GiftStoryForm";
+import { RatingsSection } from "@/components/RatingsSection";
 import { Button } from "@/components/ui/button";
 import { Bookmark, BookOpen, Headphones, Lock, Play, Volume2, ChevronRight, Film } from "lucide-react";
 
@@ -43,6 +47,7 @@ export default function StoryDetail() {
 
   return (
     <div className="pb-32">
+      <StorySeo story={story} />
       {/* Hero */}
       <div
         className="relative overflow-hidden border-b border-white/5"
@@ -142,6 +147,11 @@ export default function StoryDetail() {
             {!isAuthenticated && firstChapter?.hasAudio && (
               <p className="mt-3 text-xs text-white/55">{t("guest_listen_locked")}</p>
             )}
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <TipButton storyId={story.id} />
+              <GiftStoryForm storyId={story.id} />
+            </div>
           </div>
         </div>
       </div>
@@ -166,9 +176,12 @@ export default function StoryDetail() {
           <h2 className="font-display text-xl font-semibold sm:text-2xl">{t("cast")}</h2>
           <div className="mt-4 flex flex-wrap gap-3">
             {characters.map((c) => (
-              <div
+              <button
                 key={c.id}
-                className="glass flex items-center gap-3 rounded-xl px-3 py-2"
+                type="button"
+                onClick={() => new Audio(`/api/voices/${c.voiceId}/preview`).play().catch(() => {})}
+                className="glass flex items-center gap-3 rounded-xl px-3 py-2 text-start transition-colors hover:bg-white/[0.06]"
+                title={t("voice_preview")}
                 data-testid={`card-character-${c.id}`}
               >
                 <div
@@ -183,8 +196,8 @@ export default function StoryDetail() {
                     {c.role} · {c.tone}
                   </div>
                 </div>
-                <Volume2 className="h-4 w-4 text-white/40" />
-              </div>
+                <Volume2 className="h-4 w-4 text-[hsl(var(--gold))]/70" />
+              </button>
             ))}
           </div>
         </section>
@@ -227,6 +240,12 @@ export default function StoryDetail() {
           </ol>
         </section>
       )}
+
+      <RatingsSection
+        storyId={story.id}
+        ratingAvg={(story as any).ratingAvg}
+        ratingCount={(story as any).ratingCount}
+      />
     </div>
   );
 }

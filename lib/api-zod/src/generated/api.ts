@@ -66,6 +66,28 @@ export const LogoutBrowserSessionHeader = zod.object({
 });
 
 /**
+ * @summary Email a one-time sign-in link
+ */
+export const requestMagicLinkBodyEmailMin = 3;
+
+export const RequestMagicLinkBody = zod.object({
+  email: zod.string().email().min(requestMagicLinkBodyEmailMin),
+  returnTo: zod.string().optional(),
+});
+
+export const RequestMagicLinkResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+/**
+ * @summary Verify a magic-link token and start a session
+ */
+export const VerifyMagicLinkQueryParams = zod.object({
+  token: zod.coerce.string(),
+  returnTo: zod.coerce.string().optional(),
+});
+
+/**
  * @summary Exchange a mobile OIDC code for a session token
  */
 
@@ -135,6 +157,11 @@ export const ListStoriesResponseItem = zod.object({
   status: zod.string(),
   videoUrl: zod.string().nullish(),
   accentColor: zod.string(),
+  access: zod.string().optional(),
+  priceCents: zod.number().nullish(),
+  previewChapterCount: zod.number().optional(),
+  ratingAvg: zod.number().nullish(),
+  ratingCount: zod.number().optional(),
   createdAt: zod.coerce.date(),
   chapterCount: zod.number().optional(),
 });
@@ -161,6 +188,11 @@ export const GetStoryBySlugResponse = zod.object({
     status: zod.string(),
     videoUrl: zod.string().nullish(),
     accentColor: zod.string(),
+    access: zod.string().optional(),
+    priceCents: zod.number().nullish(),
+    previewChapterCount: zod.number().optional(),
+    ratingAvg: zod.number().nullish(),
+    ratingCount: zod.number().optional(),
     createdAt: zod.coerce.date(),
     chapterCount: zod.number().optional(),
   }),
@@ -208,6 +240,11 @@ export const GetStoryBySlugResponse = zod.object({
           status: zod.string(),
           videoUrl: zod.string().nullish(),
           accentColor: zod.string(),
+          access: zod.string().optional(),
+          priceCents: zod.number().nullish(),
+          previewChapterCount: zod.number().optional(),
+          ratingAvg: zod.number().nullish(),
+          ratingCount: zod.number().optional(),
           createdAt: zod.coerce.date(),
           chapterCount: zod.number().optional(),
         }),
@@ -239,6 +276,11 @@ export const GetChapterResponse = zod.object({
     status: zod.string(),
     videoUrl: zod.string().nullish(),
     accentColor: zod.string(),
+    access: zod.string().optional(),
+    priceCents: zod.number().nullish(),
+    previewChapterCount: zod.number().optional(),
+    ratingAvg: zod.number().nullish(),
+    ratingCount: zod.number().optional(),
     createdAt: zod.coerce.date(),
     chapterCount: zod.number().optional(),
   }),
@@ -257,6 +299,7 @@ export const GetChapterResponse = zod.object({
         emotion: zod.string(),
         text: zod.string(),
         audioUrl: zod.string().nullish(),
+        locked: zod.boolean().optional(),
       }),
     ),
     durationSec: zod.number(),
@@ -278,6 +321,7 @@ export const GetChapterResponse = zod.object({
   ),
   nextChapterNumber: zod.number().nullish(),
   prevChapterNumber: zod.number().nullish(),
+  unlocked: zod.boolean().optional(),
 });
 
 /**
@@ -301,6 +345,11 @@ export const ListMyProgressResponseItem = zod.object({
     status: zod.string(),
     videoUrl: zod.string().nullish(),
     accentColor: zod.string(),
+    access: zod.string().optional(),
+    priceCents: zod.number().nullish(),
+    previewChapterCount: zod.number().optional(),
+    ratingAvg: zod.number().nullish(),
+    ratingCount: zod.number().optional(),
     createdAt: zod.coerce.date(),
     chapterCount: zod.number().optional(),
   }),
@@ -334,6 +383,11 @@ export const UpsertMyProgressResponse = zod.object({
     status: zod.string(),
     videoUrl: zod.string().nullish(),
     accentColor: zod.string(),
+    access: zod.string().optional(),
+    priceCents: zod.number().nullish(),
+    previewChapterCount: zod.number().optional(),
+    ratingAvg: zod.number().nullish(),
+    ratingCount: zod.number().optional(),
     createdAt: zod.coerce.date(),
     chapterCount: zod.number().optional(),
   }),
@@ -355,6 +409,11 @@ export const ListMyBookmarksResponseItem = zod.object({
   status: zod.string(),
   videoUrl: zod.string().nullish(),
   accentColor: zod.string(),
+  access: zod.string().optional(),
+  priceCents: zod.number().nullish(),
+  previewChapterCount: zod.number().optional(),
+  ratingAvg: zod.number().nullish(),
+  ratingCount: zod.number().optional(),
   createdAt: zod.coerce.date(),
   chapterCount: zod.number().optional(),
 });
@@ -401,6 +460,11 @@ export const AdminListStoriesResponseItem = zod.object({
   status: zod.string(),
   videoUrl: zod.string().nullish(),
   accentColor: zod.string(),
+  access: zod.string().optional(),
+  priceCents: zod.number().nullish(),
+  previewChapterCount: zod.number().optional(),
+  ratingAvg: zod.number().nullish(),
+  ratingCount: zod.number().optional(),
   createdAt: zod.coerce.date(),
   chapterCount: zod.number().optional(),
 });
@@ -456,6 +520,11 @@ export const UpdateStoryResponse = zod.object({
   status: zod.string(),
   videoUrl: zod.string().nullish(),
   accentColor: zod.string(),
+  access: zod.string().optional(),
+  priceCents: zod.number().nullish(),
+  previewChapterCount: zod.number().optional(),
+  ratingAvg: zod.number().nullish(),
+  ratingCount: zod.number().optional(),
   createdAt: zod.coerce.date(),
   chapterCount: zod.number().optional(),
 });
@@ -513,6 +582,7 @@ export const CreateChapterBody = zod.object({
         emotion: zod.string(),
         text: zod.string(),
         audioUrl: zod.string().nullish(),
+        locked: zod.boolean().optional(),
       }),
     )
     .optional(),
@@ -538,6 +608,7 @@ export const UpdateChapterBody = zod.object({
         emotion: zod.string(),
         text: zod.string(),
         audioUrl: zod.string().nullish(),
+        locked: zod.boolean().optional(),
       }),
     )
     .optional(),
@@ -558,6 +629,7 @@ export const UpdateChapterResponse = zod.object({
       emotion: zod.string(),
       text: zod.string(),
       audioUrl: zod.string().nullish(),
+      locked: zod.boolean().optional(),
     }),
   ),
   durationSec: zod.number(),
@@ -605,4 +677,162 @@ export const AdminStatsResponse = zod.object({
   totalUsers: zod.number(),
   totalChapters: zod.number(),
   audioSegments: zod.number(),
+});
+
+/**
+ * @summary Start a Plus subscription checkout
+ */
+export const CreateCheckoutBody = zod.object({
+  interval: zod.enum(["monthly", "annual"]),
+});
+
+export const CreateCheckoutResponse = zod.object({
+  url: zod.string(),
+});
+
+/**
+ * @summary Open the customer portal (manage/cancel)
+ */
+export const CreateBillingPortalResponse = zod.object({
+  url: zod.string(),
+});
+
+/**
+ * @summary Buy a single story unlock
+ */
+
+export const PurchaseStoryBody = zod.object({
+  storyId: zod.string().min(1),
+  recipientEmail: zod.string().email().optional(),
+});
+
+export const PurchaseStoryResponse = zod.object({
+  url: zod.string(),
+});
+
+/**
+ * @summary Tip a story (one-time checkout)
+ */
+export const createTipBodyAmountCentsMin = 100;
+export const createTipBodyAmountCentsMax = 100000;
+
+export const createTipBodyMessageMax = 500;
+
+export const CreateTipBody = zod.object({
+  storyId: zod.string().optional(),
+  amountCents: zod
+    .number()
+    .min(createTipBodyAmountCentsMin)
+    .max(createTipBodyAmountCentsMax),
+  message: zod.string().max(createTipBodyMessageMax).optional(),
+});
+
+export const CreateTipResponse = zod.object({
+  url: zod.string(),
+});
+
+/**
+ * @summary Get (or create) my referral code
+ */
+export const GetMyReferralCodeResponse = zod.object({
+  code: zod.string(),
+  url: zod.string(),
+});
+
+/**
+ * @summary Redeem a referral code (14 days of Plus for both sides)
+ */
+
+export const RedeemReferralBody = zod.object({
+  code: zod.string().min(1),
+});
+
+export const RedeemReferralResponse = zod.object({
+  ok: zod.boolean(),
+  trialDays: zod.number(),
+});
+
+/**
+ * @summary Redeem a gifted story
+ */
+
+export const RedeemGiftBody = zod.object({
+  token: zod.string().min(1),
+});
+
+export const RedeemGiftResponse = zod.object({
+  ok: zod.boolean(),
+  storySlug: zod.string(),
+});
+
+/**
+ * @summary Ratings & reviews for a story
+ */
+export const ListStoryRatingsParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const ListStoryRatingsResponseItem = zod.object({
+  stars: zod.number(),
+  body: zod.string().nullish(),
+  firstName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const ListStoryRatingsResponse = zod.array(ListStoryRatingsResponseItem);
+
+/**
+ * @summary Rate a story (one rating per user, upserted)
+ */
+export const RateStoryParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const rateStoryBodyStarsMax = 5;
+
+export const rateStoryBodyBodyMax = 2000;
+
+export const RateStoryBody = zod.object({
+  stars: zod.number().min(1).max(rateStoryBodyStarsMax),
+  body: zod.string().max(rateStoryBodyBodyMax).optional(),
+});
+
+export const RateStoryResponse = zod.object({
+  ratingAvg: zod.number().nullable(),
+  ratingCount: zod.number(),
+});
+
+/**
+ * @summary Redirect to a short sample of a voice
+ */
+export const GetVoicePreviewParams = zod.object({
+  voiceId: zod.coerce.string(),
+});
+
+/**
+ * @summary Consecutive active-day streak
+ */
+export const GetMyStreakResponse = zod.object({
+  days: zod.number(),
+});
+
+/**
+ * @summary Whether the current user has ever tipped
+ */
+export const GetMySupporterStatusResponse = zod.object({
+  supporter: zod.boolean(),
+});
+
+/**
+ * @summary Subscribe an email to the newsletter
+ */
+export const subscribeNewsletterBodyEmailMin = 3;
+
+export const SubscribeNewsletterBody = zod.object({
+  email: zod.string().email().min(subscribeNewsletterBodyEmailMin),
+  source: zod.enum(["newsletter", "chapter_gate", "exit_intent", "waitlist"]),
+  locale: zod.string().optional(),
+});
+
+export const SubscribeNewsletterResponse = zod.object({
+  ok: zod.boolean(),
 });

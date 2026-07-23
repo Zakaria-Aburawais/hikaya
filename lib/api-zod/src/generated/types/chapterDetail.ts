@@ -17,4 +17,5 @@ export interface ChapterDetail {
   nextChapterNumber?: number | null;
   /** @nullable */
   prevChapterNumber?: number | null;
+  unlocked?: boolean;
 }

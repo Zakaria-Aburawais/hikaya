@@ -17,4 +17,5 @@ export interface ScriptSegment {
   text: string;
   /** @nullable */
   audioUrl?: string | null;
+  locked?: boolean;
 }

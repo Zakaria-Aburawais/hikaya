@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "@workspace/replit-auth-web";
 import { useListMyProgress, useListMyBookmarks } from "@workspace/api-client-react";
 import { StoryCard } from "@/components/StoryCard";
@@ -42,11 +43,49 @@ export default function Profile() {
               Super Admin
             </span>
           )}
+          <StreakChip />
         </div>
         <Button variant="ghost" onClick={logout} data-testid="button-logout">
           {t("logout")}
         </Button>
       </div>
+
+      <ReferralSection />
+
+      <section className="mt-10">
+        <h2 className="font-display text-lg font-semibold">{t("plus")}</h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link to="/pricing">
+            <Button
+              size="sm"
+              className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90"
+              data-testid="button-go-plus"
+            >
+              {t("go_plus")}
+            </Button>
+          </Link>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="border border-white/15"
+            onClick={async () => {
+              const r = await fetch("/api/billing/portal", {
+                method: "POST",
+                credentials: "include",
+              });
+              if (r.ok) {
+                const { url } = await r.json();
+                if (url) location.href = url;
+              } else {
+                location.href = "/pricing";
+              }
+            }}
+            data-testid="button-manage-plan"
+          >
+            {t("manage_plan")}
+          </Button>
+        </div>
+      </section>
 
       <section className="mt-10">
         <h2 className="font-display text-lg font-semibold">{t("preferences")}</h2>
@@ -102,5 +141,63 @@ export default function Profile() {
         )}
       </section>
     </div>
+  );
+}
+
+function StreakChip() {
+  const { t } = useI18n();
+  const [days, setDays] = useState(0);
+  useEffect(() => {
+    fetch("/api/me/streak", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setDays(d.days))
+      .catch(() => {});
+  }, []);
+  if (days < 2) return null;
+  return (
+    <span
+      className="ms-2 mt-1 inline-block rounded-full bg-[hsl(var(--primary))]/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+      data-testid="chip-streak"
+    >
+      🔥 {days} {t("streak_days")}
+    </span>
+  );
+}
+
+function ReferralSection() {
+  const { t } = useI18n();
+  const [url, setUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/referrals/code", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d?.url && setUrl(d.url))
+      .catch(() => {});
+  }, []);
+
+  if (!url) return null;
+  return (
+    <section className="mt-10">
+      <h2 className="font-display text-lg font-semibold">{t("refer_title")}</h2>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        <code className="max-w-full overflow-x-auto rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm text-white/80">
+          {url}
+        </code>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="border border-white/15"
+          onClick={() => {
+            navigator.clipboard.writeText(url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }}
+          data-testid="button-copy-referral"
+        >
+          {copied ? t("refer_copied") : t("refer_copy")}
+        </Button>
+      </div>
+    </section>
   );
 }

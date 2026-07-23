@@ -21,6 +21,13 @@ export interface Story {
   /** @nullable */
   videoUrl?: string | null;
   accentColor: string;
+  access?: string;
+  /** @nullable */
+  priceCents?: number | null;
+  previewChapterCount?: number;
+  /** @nullable */
+  ratingAvg?: number | null;
+  ratingCount?: number;
   createdAt: Date;
   chapterCount?: number;
 }

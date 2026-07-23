@@ -10,12 +10,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Globe, User, LogIn, LogOut, Shield, Library } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { SignInDialog } from "@/components/SignInDialog";
+import { useState } from "react";
 import { useUpdateMyPreferences } from "@workspace/api-client-react";
 
 export function Header() {
-  const { user, isAuthenticated, login, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const { lang, setLang, t } = useI18n();
   const [, navigate] = useLocation();
+  const [showSignIn, setShowSignIn] = useState(false);
   const updatePref = useUpdateMyPreferences();
 
   const isAdmin = (user as any)?.role === "super_admin";
@@ -150,7 +153,7 @@ export function Header() {
             <Button
               variant="default"
               size="sm"
-              onClick={login}
+              onClick={() => setShowSignIn(true)}
               className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90"
               data-testid="button-login"
             >
@@ -160,6 +163,7 @@ export function Header() {
           )}
         </div>
       </div>
+      <SignInDialog open={showSignIn} onClose={() => setShowSignIn(false)} />
     </header>
   );
 }

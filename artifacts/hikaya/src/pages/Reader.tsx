@@ -4,6 +4,11 @@ import { useGetChapter, useUpsertMyProgress } from "@workspace/api-client-react"
 import { useAuth } from "@workspace/replit-auth-web";
 import { useAudioPlayer } from "@/lib/audio-player";
 import { useI18n } from "@/lib/i18n";
+import { track } from "@/lib/analytics";
+import { saveGuestProgress } from "@/lib/guest-progress";
+import { ChapterEndGate } from "@/components/ChapterEndGate";
+import { SignInDialog } from "@/components/SignInDialog";
+import { Paywall } from "@/components/Paywall";
 import { Button } from "@/components/ui/button";
 import {
   ChevronLeft,
@@ -24,10 +29,12 @@ export default function Reader() {
   const slug = params.slug!;
   const chNum = Number(params.chapterNumber);
   const { data, isLoading } = useGetChapter(slug, chNum);
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { t, lang: uiLang } = useI18n();
   const player = useAudioPlayer();
   const [, navigate] = useLocation();
+  const [showSignIn, setShowSignIn] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const upsertProgress = useUpsertMyProgress();
 
   const [fontSize, setFontSize] = useState<number>(() =>
@@ -50,22 +57,53 @@ export default function Reader() {
     return new URLSearchParams(window.location.search).get("listen") === "1";
   }, []);
 
-  // Save initial progress when chapter loads
+  // Save initial progress when chapter loads (guests keep it in localStorage
+  // until they sign in — see the migration effect in App.tsx)
   useEffect(() => {
-    if (!data || !isAuthenticated) return;
-    upsertProgress.mutate({
-      data: {
+    if (!data) return;
+    if (isAuthenticated) {
+      upsertProgress.mutate({
+        data: {
+          storyId: data.story.id,
+          chapterNumber: chNum,
+          progressPercent: 0,
+        },
+      });
+    } else {
+      saveGuestProgress({
         storyId: data.story.id,
         chapterNumber: chNum,
         progressPercent: 0,
-      },
-    });
+      });
+    }
   }, [data?.story.id, chNum, isAuthenticated]);
+
+  // Funnel analytics
+  useEffect(() => {
+    if (!data) return;
+    track("story_opened", {
+      storyId: data.story.id,
+      slug: data.story.slug,
+      chapterNumber: chNum,
+      language: data.story.language,
+    });
+  }, [data?.story.id, chNum]);
+
+  // Karaoke follow: keep the line being spoken centered in view.
+  const activeSegIdx =
+    data && player.story?.chapterId === data.chapter.id ? player.currentIndex : -1;
+  useEffect(() => {
+    if (activeSegIdx < 0) return;
+    document
+      .querySelector(`[data-testid="segment-${activeSegIdx}"]`)
+      ?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [activeSegIdx]);
 
   // Auto-engage audio if user requested listen=1
   useEffect(() => {
     if (!data || !wantsListen || !isAuthenticated) return;
     if (!data.chapter.hasAudio) return;
+    if ((data as any).unlocked === false) return; // locked chapters never autoplay
     player.load(
       {
         storyId: data.story.id,
@@ -103,6 +141,7 @@ export default function Reader() {
     );
 
   const { story, chapter, characters, prevChapterNumber, nextChapterNumber } = data;
+  const unlocked = (data as any).unlocked !== false;
   const charByName = new Map(characters.map((c: any) => [c.name.toLowerCase(), c]));
 
   const surfaceClass =
@@ -173,6 +212,11 @@ export default function Reader() {
                   size="sm"
                   className="ms-1 bg-[hsl(var(--primary))] text-white hover:bg-[hsl(var(--primary))]/90"
                   onClick={() => {
+                    if (!unlocked) {
+                      track("paywall_shown", { storyId: story.id, chapterNumber: chNum });
+                      setShowPaywall(true);
+                      return;
+                    }
                     player.load(
                       {
                         storyId: story.id,
@@ -204,7 +248,7 @@ export default function Reader() {
                   size="sm"
                   variant="ghost"
                   className="ms-1 border border-current/20"
-                  onClick={login}
+                  onClick={() => setShowSignIn(true)}
                   data-testid="button-login-listen"
                 >
                   <Lock className="me-1.5 h-4 w-4" /> {t("login")}
@@ -277,6 +321,9 @@ export default function Reader() {
           </div>
         )}
 
+        {/* Guest email capture at the end of the chapter */}
+        {!isAuthenticated && <ChapterEndGate storyTitle={story.title} />}
+
         {/* Footer nav */}
         <div className="mt-12 flex items-center justify-between border-t border-current/10 pt-6">
           <Button
@@ -297,6 +344,15 @@ export default function Reader() {
           </Button>
         </div>
       </article>
+      <SignInDialog open={showSignIn} onClose={() => setShowSignIn(false)} />
+      {showPaywall && (
+        <Paywall
+          storyTitle={story.title}
+          storyId={story.id}
+          priceCents={(story as any).priceCents}
+          onClose={() => setShowPaywall(false)}
+        />
+      )}
     </div>
   );
 }
