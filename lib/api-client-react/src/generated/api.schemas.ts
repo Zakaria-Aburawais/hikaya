@@ -142,6 +142,35 @@ export interface SupporterStatus {
   supporter: boolean;
 }
 
+export interface RateStoryBody {
+  /**
+   * @minimum 1
+   * @maximum 5
+   */
+  stars: number;
+  /** @maxLength 2000 */
+  body?: string;
+}
+
+export interface RatingEntry {
+  stars: number;
+  /** @nullable */
+  body?: string | null;
+  /** @nullable */
+  firstName?: string | null;
+  createdAt: string;
+}
+
+export interface RatingSummary {
+  /** @nullable */
+  ratingAvg: number | null;
+  ratingCount: number;
+}
+
+export interface StreakResult {
+  days: number;
+}
+
 export interface UpdatePreferencesBody {
   preferredLanguage: string;
 }
@@ -165,6 +194,9 @@ export interface Story {
   /** @nullable */
   priceCents?: number | null;
   previewChapterCount?: number;
+  /** @nullable */
+  ratingAvg?: number | null;
+  ratingCount?: number;
   createdAt: string;
   chapterCount?: number;
 }

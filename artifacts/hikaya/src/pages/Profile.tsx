@@ -43,6 +43,7 @@ export default function Profile() {
               Super Admin
             </span>
           )}
+          <StreakChip />
         </div>
         <Button variant="ghost" onClick={logout} data-testid="button-logout">
           {t("logout")}
@@ -140,6 +141,26 @@ export default function Profile() {
         )}
       </section>
     </div>
+  );
+}
+
+function StreakChip() {
+  const { t } = useI18n();
+  const [days, setDays] = useState(0);
+  useEffect(() => {
+    fetch("/api/me/streak", { credentials: "include" })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d && setDays(d.days))
+      .catch(() => {});
+  }, []);
+  if (days < 2) return null;
+  return (
+    <span
+      className="ms-2 mt-1 inline-block rounded-full bg-[hsl(var(--primary))]/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider"
+      data-testid="chip-streak"
+    >
+      🔥 {days} {t("streak_days")}
+    </span>
   );
 }
 

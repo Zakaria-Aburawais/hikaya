@@ -160,6 +160,8 @@ export const ListStoriesResponseItem = zod.object({
   access: zod.string().optional(),
   priceCents: zod.number().nullish(),
   previewChapterCount: zod.number().optional(),
+  ratingAvg: zod.number().nullish(),
+  ratingCount: zod.number().optional(),
   createdAt: zod.coerce.date(),
   chapterCount: zod.number().optional(),
 });
@@ -189,6 +191,8 @@ export const GetStoryBySlugResponse = zod.object({
     access: zod.string().optional(),
     priceCents: zod.number().nullish(),
     previewChapterCount: zod.number().optional(),
+    ratingAvg: zod.number().nullish(),
+    ratingCount: zod.number().optional(),
     createdAt: zod.coerce.date(),
     chapterCount: zod.number().optional(),
   }),
@@ -239,6 +243,8 @@ export const GetStoryBySlugResponse = zod.object({
           access: zod.string().optional(),
           priceCents: zod.number().nullish(),
           previewChapterCount: zod.number().optional(),
+          ratingAvg: zod.number().nullish(),
+          ratingCount: zod.number().optional(),
           createdAt: zod.coerce.date(),
           chapterCount: zod.number().optional(),
         }),
@@ -273,6 +279,8 @@ export const GetChapterResponse = zod.object({
     access: zod.string().optional(),
     priceCents: zod.number().nullish(),
     previewChapterCount: zod.number().optional(),
+    ratingAvg: zod.number().nullish(),
+    ratingCount: zod.number().optional(),
     createdAt: zod.coerce.date(),
     chapterCount: zod.number().optional(),
   }),
@@ -340,6 +348,8 @@ export const ListMyProgressResponseItem = zod.object({
     access: zod.string().optional(),
     priceCents: zod.number().nullish(),
     previewChapterCount: zod.number().optional(),
+    ratingAvg: zod.number().nullish(),
+    ratingCount: zod.number().optional(),
     createdAt: zod.coerce.date(),
     chapterCount: zod.number().optional(),
   }),
@@ -376,6 +386,8 @@ export const UpsertMyProgressResponse = zod.object({
     access: zod.string().optional(),
     priceCents: zod.number().nullish(),
     previewChapterCount: zod.number().optional(),
+    ratingAvg: zod.number().nullish(),
+    ratingCount: zod.number().optional(),
     createdAt: zod.coerce.date(),
     chapterCount: zod.number().optional(),
   }),
@@ -400,6 +412,8 @@ export const ListMyBookmarksResponseItem = zod.object({
   access: zod.string().optional(),
   priceCents: zod.number().nullish(),
   previewChapterCount: zod.number().optional(),
+  ratingAvg: zod.number().nullish(),
+  ratingCount: zod.number().optional(),
   createdAt: zod.coerce.date(),
   chapterCount: zod.number().optional(),
 });
@@ -449,6 +463,8 @@ export const AdminListStoriesResponseItem = zod.object({
   access: zod.string().optional(),
   priceCents: zod.number().nullish(),
   previewChapterCount: zod.number().optional(),
+  ratingAvg: zod.number().nullish(),
+  ratingCount: zod.number().optional(),
   createdAt: zod.coerce.date(),
   chapterCount: zod.number().optional(),
 });
@@ -507,6 +523,8 @@ export const UpdateStoryResponse = zod.object({
   access: zod.string().optional(),
   priceCents: zod.number().nullish(),
   previewChapterCount: zod.number().optional(),
+  ratingAvg: zod.number().nullish(),
+  ratingCount: zod.number().optional(),
   createdAt: zod.coerce.date(),
   chapterCount: zod.number().optional(),
 });
@@ -745,6 +763,49 @@ export const RedeemGiftBody = zod.object({
 export const RedeemGiftResponse = zod.object({
   ok: zod.boolean(),
   storySlug: zod.string(),
+});
+
+/**
+ * @summary Ratings & reviews for a story
+ */
+export const ListStoryRatingsParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const ListStoryRatingsResponseItem = zod.object({
+  stars: zod.number(),
+  body: zod.string().nullish(),
+  firstName: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+});
+export const ListStoryRatingsResponse = zod.array(ListStoryRatingsResponseItem);
+
+/**
+ * @summary Rate a story (one rating per user, upserted)
+ */
+export const RateStoryParams = zod.object({
+  id: zod.coerce.string(),
+});
+
+export const rateStoryBodyStarsMax = 5;
+
+export const rateStoryBodyBodyMax = 2000;
+
+export const RateStoryBody = zod.object({
+  stars: zod.number().min(1).max(rateStoryBodyStarsMax),
+  body: zod.string().max(rateStoryBodyBodyMax).optional(),
+});
+
+export const RateStoryResponse = zod.object({
+  ratingAvg: zod.number().nullable(),
+  ratingCount: zod.number(),
+});
+
+/**
+ * @summary Consecutive active-day streak
+ */
+export const GetMyStreakResponse = zod.object({
+  days: zod.number(),
 });
 
 /**

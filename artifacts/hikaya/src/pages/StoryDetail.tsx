@@ -6,6 +6,7 @@ import { useI18n } from "@/lib/i18n";
 import { StorySeo } from "@/components/StorySeo";
 import { TipButton } from "@/components/TipButton";
 import { GiftStoryForm } from "@/components/GiftStoryForm";
+import { RatingsSection } from "@/components/RatingsSection";
 import { Button } from "@/components/ui/button";
 import { Bookmark, BookOpen, Headphones, Lock, Play, Volume2, ChevronRight, Film } from "lucide-react";
 
@@ -236,6 +237,12 @@ export default function StoryDetail() {
           </ol>
         </section>
       )}
+
+      <RatingsSection
+        storyId={story.id}
+        ratingAvg={(story as any).ratingAvg}
+        ratingCount={(story as any).ratingCount}
+      />
     </div>
   );
 }

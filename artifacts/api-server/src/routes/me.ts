@@ -7,6 +7,7 @@ import {
   bookmarksTable,
   readingProgressTable,
   tipsTable,
+  activityDaysTable,
 } from "@workspace/db";
 import {
   UpdateMyPreferencesBody,
@@ -78,6 +79,11 @@ router.post("/me/progress", requireAuth, async (req, res): Promise<void> => {
       },
     })
     .returning();
+  // Mark today as an active day (UTC) — backs the reading streak.
+  await db
+    .insert(activityDaysTable)
+    .values({ userId: req.user!.id, day: new Date().toISOString().slice(0, 10) })
+    .onConflictDoNothing();
   const [story] = await db.select().from(storiesTable).where(eq(storiesTable.id, row.storyId));
   res.json({
     storyId: row.storyId,
@@ -116,6 +122,25 @@ router.post("/me/bookmarks", requireAuth, async (req, res): Promise<void> => {
   }
   await db.insert(bookmarksTable).values({ userId, storyId });
   res.json({ bookmarked: true });
+});
+
+router.get("/me/streak", requireAuth, async (req, res): Promise<void> => {
+  const rows = await db
+    .select({ day: activityDaysTable.day })
+    .from(activityDaysTable)
+    .where(eq(activityDaysTable.userId, req.user!.id))
+    .orderBy(desc(activityDaysTable.day))
+    .limit(60);
+  const days = new Set(rows.map((r) => r.day));
+  let streak = 0;
+  const cursor = new Date();
+  // A streak counts back from today, or from yesterday if today has no activity yet.
+  if (!days.has(cursor.toISOString().slice(0, 10))) cursor.setUTCDate(cursor.getUTCDate() - 1);
+  while (days.has(cursor.toISOString().slice(0, 10))) {
+    streak++;
+    cursor.setUTCDate(cursor.getUTCDate() - 1);
+  }
+  res.json({ days: streak });
 });
 
 router.get("/me/supporter", requireAuth, async (req, res): Promise<void> => {

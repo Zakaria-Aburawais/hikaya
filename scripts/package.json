@@ -6,11 +6,13 @@
   "scripts": {
     "hello": "tsx ./src/hello.ts",
     "seed-hikaya": "tsx ./src/seed-hikaya.ts",
+    "lifecycle-emails": "tsx ./src/lifecycle-emails.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@workspace/db": "workspace:*",
-    "drizzle-orm": "catalog:"
+    "drizzle-orm": "catalog:",
+    "resend": "^6.18.0"
   },
   "devDependencies": {
     "@types/node": "catalog:",

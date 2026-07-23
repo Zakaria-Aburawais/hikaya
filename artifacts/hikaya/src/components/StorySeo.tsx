@@ -6,6 +6,8 @@ type SeoStory = {
   coverImage?: string | null;
   language: string;
   slug: string;
+  ratingAvg?: number | null;
+  ratingCount?: number;
 };
 
 export function StorySeo({ story }: { story: SeoStory }) {
@@ -14,7 +16,7 @@ export function StorySeo({ story }: { story: SeoStory }) {
     story.description ||
     `Read and listen to ${story.title} on Hikāya — a full-cast audio drama.`;
   const image = story.coverImage ?? `${location.origin}/opengraph.jpg`;
-  const ld = {
+  const ld: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Audiobook",
     name: story.title,
@@ -24,6 +26,14 @@ export function StorySeo({ story }: { story: SeoStory }) {
     url,
     publisher: { "@type": "Organization", name: "Hikāya" },
   };
+  if (story.ratingAvg != null && (story.ratingCount ?? 0) > 0) {
+    ld.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: (story.ratingAvg / 10).toFixed(1),
+      ratingCount: story.ratingCount,
+      bestRating: 5,
+    };
+  }
   return (
     <Helmet>
       <title>{`${story.title} — Hikāya`}</title>

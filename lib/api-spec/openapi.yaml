@@ -732,6 +732,65 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /stories/{id}/ratings:
+    get:
+      tags: [stories]
+      operationId: listStoryRatings
+      summary: Ratings & reviews for a story
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RatingEntry'
+    post:
+      tags: [stories]
+      operationId: rateStory
+      summary: Rate a story (one rating per user, upserted)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: string }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RateStoryBody'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RatingSummary'
+        '404':
+          description: Story not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /me/streak:
+    get:
+      tags: [me]
+      operationId: getMyStreak
+      summary: Consecutive active-day streak
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StreakResult'
   /me/supporter:
     get:
       tags: [me]
@@ -930,6 +989,31 @@ components:
       required: [supporter]
       properties:
         supporter: { type: boolean }
+    RateStoryBody:
+      type: object
+      required: [stars]
+      properties:
+        stars: { type: integer, minimum: 1, maximum: 5 }
+        body: { type: string, maxLength: 2000 }
+    RatingEntry:
+      type: object
+      required: [stars, createdAt]
+      properties:
+        stars: { type: integer }
+        body: { type: [string, 'null'] }
+        firstName: { type: [string, 'null'] }
+        createdAt: { type: string, format: date-time }
+    RatingSummary:
+      type: object
+      required: [ratingAvg, ratingCount]
+      properties:
+        ratingAvg: { type: [integer, 'null'] }
+        ratingCount: { type: integer }
+    StreakResult:
+      type: object
+      required: [days]
+      properties:
+        days: { type: integer }
 
     UpdatePreferencesBody:
       type: object
@@ -959,6 +1043,8 @@ components:
         access: { type: string }
         priceCents: { type: [integer, 'null'] }
         previewChapterCount: { type: integer }
+        ratingAvg: { type: [integer, 'null'] }
+        ratingCount: { type: integer }
         createdAt: { type: string, format: date-time }
         chapterCount: { type: integer }
     Character:

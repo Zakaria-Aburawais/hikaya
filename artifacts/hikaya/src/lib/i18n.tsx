@@ -112,6 +112,11 @@ const en: Dict = {
   refer_title: "Give a friend 14 days of Plus — get 14 days free",
   refer_copy: "Copy invite link",
   refer_copied: "Copied!",
+  ratings_title: "Ratings & reviews",
+  rate_story: "Rate this story",
+  review_placeholder: "Share a few words…",
+  submit_review: "Submit",
+  streak_days: "day streak",
 };
 
 const ar: Dict = {
@@ -213,6 +218,11 @@ const ar: Dict = {
   refer_title: "امنح صديقك ١٤ يومًا من بلس — واحصل على ١٤ يومًا مجانًا",
   refer_copy: "انسخ رابط الدعوة",
   refer_copied: "تم النسخ!",
+  ratings_title: "التقييمات والمراجعات",
+  rate_story: "قيّم هذه الحكاية",
+  review_placeholder: "شاركنا بضع كلمات…",
+  submit_review: "إرسال",
+  streak_days: "يومًا متتاليًا",
 };
 
 const fr: Dict = {
@@ -275,6 +285,11 @@ const fr: Dict = {
   refer_title: "Offrez 14 jours de Plus à un ami — recevez 14 jours gratuits",
   refer_copy: "Copier le lien d'invitation",
   refer_copied: "Copié !",
+  ratings_title: "Notes et avis",
+  rate_story: "Notez cette histoire",
+  review_placeholder: "Quelques mots…",
+  submit_review: "Envoyer",
+  streak_days: "jours d'affilée",
 };
 
 const nl: Dict = {
@@ -319,6 +334,11 @@ const nl: Dict = {
   refer_title: "Geef een vriend 14 dagen Plus — krijg zelf 14 dagen gratis",
   refer_copy: "Uitnodigingslink kopiëren",
   refer_copied: "Gekopieerd!",
+  ratings_title: "Beoordelingen en reviews",
+  rate_story: "Beoordeel dit verhaal",
+  review_placeholder: "Deel een paar woorden…",
+  submit_review: "Versturen",
+  streak_days: "dagen op rij",
 };
 
 const es: Dict = {
@@ -363,6 +383,11 @@ const es: Dict = {
   refer_title: "Regala 14 días de Plus a un amigo — y recibe 14 días gratis",
   refer_copy: "Copiar enlace de invitación",
   refer_copied: "¡Copiado!",
+  ratings_title: "Valoraciones y reseñas",
+  rate_story: "Valora esta historia",
+  review_placeholder: "Comparte unas palabras…",
+  submit_review: "Enviar",
+  streak_days: "días seguidos",
 };
 
 const de: Dict = {
@@ -407,6 +432,11 @@ const de: Dict = {
   refer_title: "Schenke 14 Tage Plus — und erhalte selbst 14 Tage gratis",
   refer_copy: "Einladungslink kopieren",
   refer_copied: "Kopiert!",
+  ratings_title: "Bewertungen und Rezensionen",
+  rate_story: "Bewerte diese Geschichte",
+  review_placeholder: "Ein paar Worte…",
+  submit_review: "Absenden",
+  streak_days: "Tage in Folge",
 };
 
 const dictionaries: Record<Lang, Dict> = { en, ar, fr, nl, es, de };

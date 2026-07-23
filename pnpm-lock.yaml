@@ -690,6 +690,9 @@ importers:
       drizzle-orm:
         specifier: 'catalog:'
         version: 0.45.2(@types/pg@8.18.0)(pg@8.20.0)
+      resend:
+        specifier: ^6.18.0
+        version: 6.18.0
     devDependencies:
       '@types/node':
         specifier: 'catalog:'

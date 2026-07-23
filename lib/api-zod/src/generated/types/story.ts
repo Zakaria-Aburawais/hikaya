@@ -25,6 +25,9 @@ export interface Story {
   /** @nullable */
   priceCents?: number | null;
   previewChapterCount?: number;
+  /** @nullable */
+  ratingAvg?: number | null;
+  ratingCount?: number;
   createdAt: Date;
   chapterCount?: number;
 }

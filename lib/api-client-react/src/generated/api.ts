@@ -43,6 +43,9 @@ import type {
   ParsePdfResult,
   ProgressEntry,
   PurchaseStoryBody,
+  RateStoryBody,
+  RatingEntry,
+  RatingSummary,
   RedeemGiftBody,
   RedeemGiftResult,
   RedeemReferralBody,
@@ -50,6 +53,7 @@ import type {
   ReferralCodeResult,
   Story,
   StoryDetail,
+  StreakResult,
   SupporterStatus,
   TipBody,
   ToggleBookmarkBody,
@@ -3197,6 +3201,255 @@ export const useRedeemGift = <
 > => {
   return useMutation(getRedeemGiftMutationOptions(options));
 };
+
+/**
+ * @summary Ratings & reviews for a story
+ */
+export const getListStoryRatingsUrl = (id: string) => {
+  return `/api/stories/${id}/ratings`;
+};
+
+export const listStoryRatings = async (
+  id: string,
+  options?: RequestInit,
+): Promise<RatingEntry[]> => {
+  return customFetch<RatingEntry[]>(getListStoryRatingsUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListStoryRatingsQueryKey = (id: string) => {
+  return [`/api/stories/${id}/ratings`] as const;
+};
+
+export const getListStoryRatingsQueryOptions = <
+  TData = Awaited<ReturnType<typeof listStoryRatings>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listStoryRatings>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListStoryRatingsQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listStoryRatings>>
+  > = ({ signal }) => listStoryRatings(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof listStoryRatings>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListStoryRatingsQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listStoryRatings>>
+>;
+export type ListStoryRatingsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Ratings & reviews for a story
+ */
+
+export function useListStoryRatings<
+  TData = Awaited<ReturnType<typeof listStoryRatings>>,
+  TError = ErrorType<unknown>,
+>(
+  id: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listStoryRatings>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListStoryRatingsQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Rate a story (one rating per user, upserted)
+ */
+export const getRateStoryUrl = (id: string) => {
+  return `/api/stories/${id}/ratings`;
+};
+
+export const rateStory = async (
+  id: string,
+  rateStoryBody: RateStoryBody,
+  options?: RequestInit,
+): Promise<RatingSummary> => {
+  return customFetch<RatingSummary>(getRateStoryUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(rateStoryBody),
+  });
+};
+
+export const getRateStoryMutationOptions = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof rateStory>>,
+    TError,
+    { id: string; data: BodyType<RateStoryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof rateStory>>,
+  TError,
+  { id: string; data: BodyType<RateStoryBody> },
+  TContext
+> => {
+  const mutationKey = ["rateStory"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof rateStory>>,
+    { id: string; data: BodyType<RateStoryBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return rateStory(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RateStoryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof rateStory>>
+>;
+export type RateStoryMutationBody = BodyType<RateStoryBody>;
+export type RateStoryMutationError = ErrorType<ErrorEnvelope>;
+
+/**
+ * @summary Rate a story (one rating per user, upserted)
+ */
+export const useRateStory = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof rateStory>>,
+    TError,
+    { id: string; data: BodyType<RateStoryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof rateStory>>,
+  TError,
+  { id: string; data: BodyType<RateStoryBody> },
+  TContext
+> => {
+  return useMutation(getRateStoryMutationOptions(options));
+};
+
+/**
+ * @summary Consecutive active-day streak
+ */
+export const getGetMyStreakUrl = () => {
+  return `/api/me/streak`;
+};
+
+export const getMyStreak = async (
+  options?: RequestInit,
+): Promise<StreakResult> => {
+  return customFetch<StreakResult>(getGetMyStreakUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetMyStreakQueryKey = () => {
+  return [`/api/me/streak`] as const;
+};
+
+export const getGetMyStreakQueryOptions = <
+  TData = Awaited<ReturnType<typeof getMyStreak>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyStreak>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetMyStreakQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyStreak>>> = ({
+    signal,
+  }) => getMyStreak({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getMyStreak>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetMyStreakQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getMyStreak>>
+>;
+export type GetMyStreakQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Consecutive active-day streak
+ */
+
+export function useGetMyStreak<
+  TData = Awaited<ReturnType<typeof getMyStreak>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getMyStreak>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetMyStreakQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
 
 /**
  * @summary Whether the current user has ever tipped
