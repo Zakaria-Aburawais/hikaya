@@ -18,6 +18,8 @@ tags:
     description: Admin-only operations
   - name: me
     description: Current user data
+  - name: growth
+    description: Email capture and growth endpoints
 paths:
   /healthz:
     get:
@@ -542,6 +544,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/AdminStats'
 
+  /newsletter/subscribe:
+    post:
+      tags: [growth]
+      operationId: subscribeNewsletter
+      summary: Subscribe an email to the newsletter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewsletterSubscribeBody'
+      responses:
+        '200':
+          description: Subscribed (idempotent)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkEnvelope'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
 components:
   parameters:
     AuthorizationSessionHeader:
@@ -609,6 +636,21 @@ components:
       required: [error]
       properties:
         error: { type: string }
+    OkEnvelope:
+      type: object
+      required: [ok]
+      properties:
+        ok: { type: boolean }
+
+    NewsletterSubscribeBody:
+      type: object
+      required: [email, source]
+      properties:
+        email: { type: string, format: email, minLength: 3 }
+        source:
+          type: string
+          enum: [newsletter, chapter_gate, exit_intent, waitlist]
+        locale: { type: string }
 
     UpdatePreferencesBody:
       type: object

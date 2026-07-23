@@ -53,6 +53,27 @@ export interface ErrorEnvelope {
   error: string;
 }
 
+export interface OkEnvelope {
+  ok: boolean;
+}
+
+export type NewsletterSubscribeBodySource =
+  (typeof NewsletterSubscribeBodySource)[keyof typeof NewsletterSubscribeBodySource];
+
+export const NewsletterSubscribeBodySource = {
+  newsletter: "newsletter",
+  chapter_gate: "chapter_gate",
+  exit_intent: "exit_intent",
+  waitlist: "waitlist",
+} as const;
+
+export interface NewsletterSubscribeBody {
+  /** @minLength 3 */
+  email: string;
+  source: NewsletterSubscribeBodySource;
+  locale?: string;
+}
+
 export interface UpdatePreferencesBody {
   preferredLanguage: string;
 }

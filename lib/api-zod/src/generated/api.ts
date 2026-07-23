@@ -606,3 +606,18 @@ export const AdminStatsResponse = zod.object({
   totalChapters: zod.number(),
   audioSegments: zod.number(),
 });
+
+/**
+ * @summary Subscribe an email to the newsletter
+ */
+export const subscribeNewsletterBodyEmailMin = 3;
+
+export const SubscribeNewsletterBody = zod.object({
+  email: zod.string().email().min(subscribeNewsletterBodyEmailMin),
+  source: zod.enum(["newsletter", "chapter_gate", "exit_intent", "waitlist"]),
+  locale: zod.string().optional(),
+});
+
+export const SubscribeNewsletterResponse = zod.object({
+  ok: zod.boolean(),
+});

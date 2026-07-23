@@ -4,6 +4,8 @@ import { useGetChapter, useUpsertMyProgress } from "@workspace/api-client-react"
 import { useAuth } from "@workspace/replit-auth-web";
 import { useAudioPlayer } from "@/lib/audio-player";
 import { useI18n } from "@/lib/i18n";
+import { track } from "@/lib/analytics";
+import { ChapterEndGate } from "@/components/ChapterEndGate";
 import { Button } from "@/components/ui/button";
 import {
   ChevronLeft,
@@ -61,6 +63,17 @@ export default function Reader() {
       },
     });
   }, [data?.story.id, chNum, isAuthenticated]);
+
+  // Funnel analytics
+  useEffect(() => {
+    if (!data) return;
+    track("story_opened", {
+      storyId: data.story.id,
+      slug: data.story.slug,
+      chapterNumber: chNum,
+      language: data.story.language,
+    });
+  }, [data?.story.id, chNum]);
 
   // Auto-engage audio if user requested listen=1
   useEffect(() => {
@@ -276,6 +289,9 @@ export default function Reader() {
             {chapter.content || "(This chapter has no content yet.)"}
           </div>
         )}
+
+        {/* Guest email capture at the end of the chapter */}
+        {!isAuthenticated && <ChapterEndGate storyTitle={story.title} />}
 
         {/* Footer nav */}
         <div className="mt-12 flex items-center justify-between border-t border-current/10 pt-6">

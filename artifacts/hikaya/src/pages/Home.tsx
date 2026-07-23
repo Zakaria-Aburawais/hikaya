@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { useListStories, useListMyProgress } from "@workspace/api-client-react";
 import { useAuth } from "@workspace/replit-auth-web";
 import { StoryCard } from "@/components/StoryCard";
+import { NewsletterInline } from "@/components/NewsletterInline";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { ChevronRight, Sparkles, BookOpen, Film, Heart, Drama, Baby, Scroll } from "lucide-react";
@@ -169,6 +170,16 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Newsletter capture */}
+      <section className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-[hsl(var(--primary))]/20 to-transparent p-6 sm:p-8">
+          <h2 className="font-display text-xl font-semibold sm:text-2xl">{t("gate_body")}</h2>
+          <div className="mt-4 max-w-md">
+            <NewsletterInline source="newsletter" />
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

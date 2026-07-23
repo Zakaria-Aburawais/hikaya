@@ -71,6 +71,13 @@ const en: Dict = {
   ui_language: "Interface language",
   reading_history: "Reading history",
   bookmarks: "Bookmarks",
+  gate_title: "Want to hear how “{title}” ends?",
+  gate_body: "Get the next chapter — and a new voiced story every week — in your inbox.",
+  newsletter_cta: "Get weekly stories",
+  newsletter_success: "You're in. Check your inbox.",
+  newsletter_placeholder: "you@email.com",
+  exit_title: "Before you go…",
+  exit_body: "One voiced story a week. No spam.",
 };
 
 const ar: Dict = {
@@ -132,6 +139,12 @@ const ar: Dict = {
   ui_language: "لغة الواجهة",
   reading_history: "سجلّ القراءة",
   bookmarks: "الإشارات المرجعية",
+  gate_title: "تريد أن تعرف كيف تنتهي «{title}»؟",
+  gate_body: "احصل على الفصل التالي — وحكاية جديدة بالأصوات كل أسبوع — في بريدك.",
+  newsletter_cta: "احصل على حكايات أسبوعية",
+  newsletter_success: "تم تسجيلك. تفقّد بريدك.",
+  exit_title: "قبل أن تذهب…",
+  exit_body: "حكاية واحدة بالأصوات كل أسبوع. بلا رسائل مزعجة.",
 };
 
 const fr: Dict = {
@@ -154,9 +167,45 @@ const fr: Dict = {
   listen_now: "Écouter",
   login: "Se connecter",
   logout: "Se déconnecter",
+  gate_title: "Envie de savoir comment finit « {title} » ?",
+  gate_body: "Recevez le chapitre suivant — et une nouvelle histoire chaque semaine — par e-mail.",
+  newsletter_cta: "Recevoir des histoires chaque semaine",
+  newsletter_success: "C'est fait. Vérifiez votre boîte mail.",
+  exit_title: "Avant de partir…",
+  exit_body: "Une histoire à écouter chaque semaine. Pas de spam.",
 };
 
-const dictionaries: Record<Lang, Dict> = { en, ar, fr, nl: en, es: en, de: en };
+const nl: Dict = {
+  ...en,
+  gate_title: "Wil je weten hoe “{title}” eindigt?",
+  gate_body: "Ontvang het volgende hoofdstuk — en elke week een nieuw verhaal — in je inbox.",
+  newsletter_cta: "Wekelijkse verhalen ontvangen",
+  newsletter_success: "Gelukt. Controleer je inbox.",
+  exit_title: "Voor je gaat…",
+  exit_body: "Eén ingesproken verhaal per week. Geen spam.",
+};
+
+const es: Dict = {
+  ...en,
+  gate_title: "¿Quieres saber cómo termina “{title}”?",
+  gate_body: "Recibe el siguiente capítulo — y una nueva historia cada semana — en tu correo.",
+  newsletter_cta: "Recibir historias cada semana",
+  newsletter_success: "Listo. Revisa tu correo.",
+  exit_title: "Antes de irte…",
+  exit_body: "Una historia con voz cada semana. Sin spam.",
+};
+
+const de: Dict = {
+  ...en,
+  gate_title: "Willst du wissen, wie „{title}“ endet?",
+  gate_body: "Erhalte das nächste Kapitel — und jede Woche eine neue Geschichte — per E-Mail.",
+  newsletter_cta: "Wöchentliche Geschichten erhalten",
+  newsletter_success: "Geschafft. Sieh in dein Postfach.",
+  exit_title: "Bevor du gehst…",
+  exit_body: "Eine vertonte Geschichte pro Woche. Kein Spam.",
+};
+
+const dictionaries: Record<Lang, Dict> = { en, ar, fr, nl, es, de };
 
 type I18nCtx = {
   lang: Lang;

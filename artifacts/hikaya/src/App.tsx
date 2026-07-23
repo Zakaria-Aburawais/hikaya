@@ -18,6 +18,8 @@ import EditStory from "@/pages/admin/EditStory";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { StickyAudioPlayer } from "@/components/StickyAudioPlayer";
+import { ExitIntentModal } from "@/components/ExitIntentModal";
+import { identify } from "@/lib/analytics";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { AudioPlayerProvider } from "@/lib/audio-player";
 import { Button } from "@/components/ui/button";
@@ -59,6 +61,10 @@ function LangSync() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+  useEffect(() => {
+    const id = (user as any)?.id;
+    if (id) identify(id, { role: (user as any)?.role, language: (user as any)?.preferredLanguage });
+  }, [user]);
   return null;
 }
 
@@ -84,6 +90,7 @@ function AppShell() {
       </main>
       {!isReader && <BottomNav />}
       <StickyAudioPlayer />
+      <ExitIntentModal />
       <LangSync />
     </div>
   );
