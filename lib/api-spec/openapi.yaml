@@ -824,6 +824,9 @@ components:
         status: { type: string }
         videoUrl: { type: [string, 'null'] }
         accentColor: { type: string }
+        access: { type: string }
+        priceCents: { type: [integer, 'null'] }
+        previewChapterCount: { type: integer }
         createdAt: { type: string, format: date-time }
         chapterCount: { type: integer }
     Character:
@@ -891,6 +894,7 @@ components:
           items: { $ref: '#/components/schemas/Character' }
         nextChapterNumber: { type: [integer, 'null'] }
         prevChapterNumber: { type: [integer, 'null'] }
+        unlocked: { type: boolean }
 
     ScriptSegment:
       type: object
@@ -905,6 +909,7 @@ components:
         emotion: { type: string }
         text: { type: string }
         audioUrl: { type: [string, 'null'] }
+        locked: { type: boolean }
 
     ProgressEntry:
       type: object

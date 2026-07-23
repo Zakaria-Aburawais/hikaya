@@ -49,6 +49,41 @@ export default function Profile() {
       </div>
 
       <section className="mt-10">
+        <h2 className="font-display text-lg font-semibold">{t("plus")}</h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link to="/pricing">
+            <Button
+              size="sm"
+              className="bg-[hsl(var(--primary))] hover:bg-[hsl(var(--primary))]/90"
+              data-testid="button-go-plus"
+            >
+              {t("go_plus")}
+            </Button>
+          </Link>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="border border-white/15"
+            onClick={async () => {
+              const r = await fetch("/api/billing/portal", {
+                method: "POST",
+                credentials: "include",
+              });
+              if (r.ok) {
+                const { url } = await r.json();
+                if (url) location.href = url;
+              } else {
+                location.href = "/pricing";
+              }
+            }}
+            data-testid="button-manage-plan"
+          >
+            {t("manage_plan")}
+          </Button>
+        </div>
+      </section>
+
+      <section className="mt-10">
         <h2 className="font-display text-lg font-semibold">{t("preferences")}</h2>
         <div className="mt-3 grid gap-3 sm:grid-cols-[200px_1fr] sm:items-center">
           <div className="text-sm text-white/65">{t("ui_language")}</div>

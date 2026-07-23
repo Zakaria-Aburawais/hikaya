@@ -13,6 +13,7 @@ import StoryDetail from "@/pages/StoryDetail";
 import Reader from "@/pages/Reader";
 import Profile from "@/pages/Profile";
 import Shelf from "@/pages/Shelf";
+import Pricing from "@/pages/Pricing";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import UploadStory from "@/pages/admin/UploadStory";
 import EditStory from "@/pages/admin/EditStory";
@@ -114,6 +115,7 @@ function AppShell() {
           <Route path="/story/:slug/read/:chapterNumber" component={Reader} />
           <Route path="/profile" component={Profile} />
           <Route path="/shelf" component={Shelf} />
+          <Route path="/pricing" component={Pricing} />
           <Route path="/admin">{() => <AdminGuard><AdminDashboard /></AdminGuard>}</Route>
           <Route path="/admin/upload">{() => <AdminGuard><UploadStory /></AdminGuard>}</Route>
           <Route path="/admin/stories/:id">{() => <AdminGuard><EditStory /></AdminGuard>}</Route>

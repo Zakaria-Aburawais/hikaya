@@ -120,6 +120,10 @@ export interface Story {
   /** @nullable */
   videoUrl?: string | null;
   accentColor: string;
+  access?: string;
+  /** @nullable */
+  priceCents?: number | null;
+  previewChapterCount?: number;
   createdAt: string;
   chapterCount?: number;
 }
@@ -156,6 +160,7 @@ export interface ScriptSegment {
   text: string;
   /** @nullable */
   audioUrl?: string | null;
+  locked?: boolean;
 }
 
 export interface Chapter {
@@ -201,6 +206,7 @@ export interface ChapterDetail {
   nextChapterNumber?: number | null;
   /** @nullable */
   prevChapterNumber?: number | null;
+  unlocked?: boolean;
 }
 
 export interface UpsertProgressBody {

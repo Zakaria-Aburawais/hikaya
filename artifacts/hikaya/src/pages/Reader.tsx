@@ -8,6 +8,7 @@ import { track } from "@/lib/analytics";
 import { saveGuestProgress } from "@/lib/guest-progress";
 import { ChapterEndGate } from "@/components/ChapterEndGate";
 import { SignInDialog } from "@/components/SignInDialog";
+import { Paywall } from "@/components/Paywall";
 import { Button } from "@/components/ui/button";
 import {
   ChevronLeft,
@@ -33,6 +34,7 @@ export default function Reader() {
   const player = useAudioPlayer();
   const [, navigate] = useLocation();
   const [showSignIn, setShowSignIn] = useState(false);
+  const [showPaywall, setShowPaywall] = useState(false);
   const upsertProgress = useUpsertMyProgress();
 
   const [fontSize, setFontSize] = useState<number>(() =>
@@ -91,6 +93,7 @@ export default function Reader() {
   useEffect(() => {
     if (!data || !wantsListen || !isAuthenticated) return;
     if (!data.chapter.hasAudio) return;
+    if ((data as any).unlocked === false) return; // locked chapters never autoplay
     player.load(
       {
         storyId: data.story.id,
@@ -128,6 +131,7 @@ export default function Reader() {
     );
 
   const { story, chapter, characters, prevChapterNumber, nextChapterNumber } = data;
+  const unlocked = (data as any).unlocked !== false;
   const charByName = new Map(characters.map((c: any) => [c.name.toLowerCase(), c]));
 
   const surfaceClass =
@@ -198,6 +202,11 @@ export default function Reader() {
                   size="sm"
                   className="ms-1 bg-[hsl(var(--primary))] text-white hover:bg-[hsl(var(--primary))]/90"
                   onClick={() => {
+                    if (!unlocked) {
+                      track("paywall_shown", { storyId: story.id, chapterNumber: chNum });
+                      setShowPaywall(true);
+                      return;
+                    }
                     player.load(
                       {
                         storyId: story.id,
@@ -326,6 +335,14 @@ export default function Reader() {
         </div>
       </article>
       <SignInDialog open={showSignIn} onClose={() => setShowSignIn(false)} />
+      {showPaywall && (
+        <Paywall
+          storyTitle={story.title}
+          storyId={story.id}
+          priceCents={(story as any).priceCents}
+          onClose={() => setShowPaywall(false)}
+        />
+      )}
     </div>
   );
 }
