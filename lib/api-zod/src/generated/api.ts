@@ -802,6 +802,13 @@ export const RateStoryResponse = zod.object({
 });
 
 /**
+ * @summary Redirect to a short sample of a voice
+ */
+export const GetVoicePreviewParams = zod.object({
+  voiceId: zod.coerce.string(),
+});
+
+/**
  * @summary Consecutive active-day streak
  */
 export const GetMyStreakResponse = zod.object({

@@ -89,6 +89,16 @@ export default function Reader() {
     });
   }, [data?.story.id, chNum]);
 
+  // Karaoke follow: keep the line being spoken centered in view.
+  const activeSegIdx =
+    data && player.story?.chapterId === data.chapter.id ? player.currentIndex : -1;
+  useEffect(() => {
+    if (activeSegIdx < 0) return;
+    document
+      .querySelector(`[data-testid="segment-${activeSegIdx}"]`)
+      ?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [activeSegIdx]);
+
   // Auto-engage audio if user requested listen=1
   useEffect(() => {
     if (!data || !wantsListen || !isAuthenticated) return;

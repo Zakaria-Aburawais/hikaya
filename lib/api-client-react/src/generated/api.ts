@@ -3377,6 +3377,94 @@ export const useRateStory = <
 };
 
 /**
+ * @summary Redirect to a short sample of a voice
+ */
+export const getGetVoicePreviewUrl = (voiceId: string) => {
+  return `/api/voices/${voiceId}/preview`;
+};
+
+export const getVoicePreview = async (
+  voiceId: string,
+  options?: RequestInit,
+): Promise<unknown> => {
+  return customFetch<unknown>(getGetVoicePreviewUrl(voiceId), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetVoicePreviewQueryKey = (voiceId: string) => {
+  return [`/api/voices/${voiceId}/preview`] as const;
+};
+
+export const getGetVoicePreviewQueryOptions = <
+  TData = Awaited<ReturnType<typeof getVoicePreview>>,
+  TError = ErrorType<void | ErrorEnvelope>,
+>(
+  voiceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getVoicePreview>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey =
+    queryOptions?.queryKey ?? getGetVoicePreviewQueryKey(voiceId);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getVoicePreview>>> = ({
+    signal,
+  }) => getVoicePreview(voiceId, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!voiceId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getVoicePreview>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetVoicePreviewQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getVoicePreview>>
+>;
+export type GetVoicePreviewQueryError = ErrorType<void | ErrorEnvelope>;
+
+/**
+ * @summary Redirect to a short sample of a voice
+ */
+
+export function useGetVoicePreview<
+  TData = Awaited<ReturnType<typeof getVoicePreview>>,
+  TError = ErrorType<void | ErrorEnvelope>,
+>(
+  voiceId: string,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getVoicePreview>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetVoicePreviewQueryOptions(voiceId, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
  * @summary Consecutive active-day streak
  */
 export const getGetMyStreakUrl = () => {

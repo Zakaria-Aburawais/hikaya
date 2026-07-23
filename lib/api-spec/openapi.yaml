@@ -779,6 +779,25 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
+  /voices/{voiceId}/preview:
+    get:
+      tags: [stories]
+      operationId: getVoicePreview
+      summary: Redirect to a short sample of a voice
+      parameters:
+        - name: voiceId
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '302':
+          description: Redirect to the sample audio.
+        '404':
+          description: No preview available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
   /me/streak:
     get:
       tags: [me]

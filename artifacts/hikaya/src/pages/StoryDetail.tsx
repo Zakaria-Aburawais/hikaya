@@ -176,9 +176,12 @@ export default function StoryDetail() {
           <h2 className="font-display text-xl font-semibold sm:text-2xl">{t("cast")}</h2>
           <div className="mt-4 flex flex-wrap gap-3">
             {characters.map((c) => (
-              <div
+              <button
                 key={c.id}
-                className="glass flex items-center gap-3 rounded-xl px-3 py-2"
+                type="button"
+                onClick={() => new Audio(`/api/voices/${c.voiceId}/preview`).play().catch(() => {})}
+                className="glass flex items-center gap-3 rounded-xl px-3 py-2 text-start transition-colors hover:bg-white/[0.06]"
+                title={t("voice_preview")}
                 data-testid={`card-character-${c.id}`}
               >
                 <div
@@ -193,8 +196,8 @@ export default function StoryDetail() {
                     {c.role} · {c.tone}
                   </div>
                 </div>
-                <Volume2 className="h-4 w-4 text-white/40" />
-              </div>
+                <Volume2 className="h-4 w-4 text-[hsl(var(--gold))]/70" />
+              </button>
             ))}
           </div>
         </section>

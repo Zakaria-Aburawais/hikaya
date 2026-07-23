@@ -117,6 +117,8 @@ const en: Dict = {
   review_placeholder: "Share a few words…",
   submit_review: "Submit",
   streak_days: "day streak",
+  sleep_timer: "Sleep timer",
+  voice_preview: "Hear this voice",
 };
 
 const ar: Dict = {
@@ -223,6 +225,8 @@ const ar: Dict = {
   review_placeholder: "شاركنا بضع كلمات…",
   submit_review: "إرسال",
   streak_days: "يومًا متتاليًا",
+  sleep_timer: "مؤقّت النوم",
+  voice_preview: "استمع إلى هذا الصوت",
 };
 
 const fr: Dict = {
@@ -290,6 +294,8 @@ const fr: Dict = {
   review_placeholder: "Quelques mots…",
   submit_review: "Envoyer",
   streak_days: "jours d'affilée",
+  sleep_timer: "Minuterie de sommeil",
+  voice_preview: "Écouter cette voix",
 };
 
 const nl: Dict = {
@@ -339,6 +345,8 @@ const nl: Dict = {
   review_placeholder: "Deel een paar woorden…",
   submit_review: "Versturen",
   streak_days: "dagen op rij",
+  sleep_timer: "Slaaptimer",
+  voice_preview: "Beluister deze stem",
 };
 
 const es: Dict = {
@@ -388,6 +396,8 @@ const es: Dict = {
   review_placeholder: "Comparte unas palabras…",
   submit_review: "Enviar",
   streak_days: "días seguidos",
+  sleep_timer: "Temporizador de sueño",
+  voice_preview: "Escucha esta voz",
 };
 
 const de: Dict = {
@@ -437,6 +447,8 @@ const de: Dict = {
   review_placeholder: "Ein paar Worte…",
   submit_review: "Absenden",
   streak_days: "Tage in Folge",
+  sleep_timer: "Einschlaf-Timer",
+  voice_preview: "Diese Stimme anhören",
 };
 
 const dictionaries: Record<Lang, Dict> = { en, ar, fr, nl, es, de };

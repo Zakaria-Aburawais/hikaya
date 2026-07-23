@@ -8,14 +8,28 @@ import {
   SkipBack,
   X,
   Headphones,
+  Moon,
 } from "lucide-react";
 import { Link } from "wouter";
 
 const SPEEDS = [0.75, 1, 1.25, 1.5];
+const SLEEP_STEPS: (number | null)[] = [null, 15, 30, 60];
 
 export function StickyAudioPlayer() {
-  const { story, segments, currentIndex, isPlaying, toggle, next, prev, speed, setSpeed, close } =
-    useAudioPlayer();
+  const {
+    story,
+    segments,
+    currentIndex,
+    isPlaying,
+    toggle,
+    next,
+    prev,
+    speed,
+    setSpeed,
+    sleepMinutes,
+    setSleepTimer,
+    close,
+  } = useAudioPlayer();
   const { t } = useI18n();
   if (!story) return null;
 
@@ -104,6 +118,20 @@ export function StickyAudioPlayer() {
               data-testid="button-audio-speed"
             >
               {speed}x
+            </button>
+            <button
+              onClick={() => {
+                const i = SLEEP_STEPS.indexOf(sleepMinutes);
+                setSleepTimer(SLEEP_STEPS[(i + 1) % SLEEP_STEPS.length]);
+              }}
+              title={t("sleep_timer")}
+              className={`flex items-center gap-0.5 rounded-md px-2 py-1 text-[10px] font-bold hover:bg-white/5 ${
+                sleepMinutes ? "text-[hsl(var(--gold))]" : "text-white/70"
+              }`}
+              data-testid="button-audio-sleep"
+            >
+              <Moon className="h-3 w-3" />
+              {sleepMinutes ? `${sleepMinutes}m` : ""}
             </button>
             <Button
               size="icon"
