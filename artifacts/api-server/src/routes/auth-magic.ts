@@ -48,6 +48,11 @@ router.post("/auth/magic/request", async (req, res): Promise<void> => {
   const base = process.env.APP_BASE_URL ?? getOrigin(req);
   const link = `${base}/api/auth/magic/verify?token=${encodeURIComponent(token)}&returnTo=${encodeURIComponent(returnTo)}`;
 
+  if (!process.env.RESEND_API_KEY) {
+    // Email is not configured (local dev): surface the link in the server log
+    // so sign-in remains testable. Never active once RESEND_API_KEY is set.
+    req.log.info({ link }, "magic link (email not configured)");
+  }
   sendEmail(
     email,
     "Your Hikāya sign-in link",
