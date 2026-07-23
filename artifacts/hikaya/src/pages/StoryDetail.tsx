@@ -3,6 +3,7 @@ import { useGetStoryBySlug, useToggleBookmark, getGetStoryBySlugQueryKey } from 
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@workspace/replit-auth-web";
 import { useI18n } from "@/lib/i18n";
+import { StorySeo } from "@/components/StorySeo";
 import { Button } from "@/components/ui/button";
 import { Bookmark, BookOpen, Headphones, Lock, Play, Volume2, ChevronRight, Film } from "lucide-react";
 
@@ -43,6 +44,7 @@ export default function StoryDetail() {
 
   return (
     <div className="pb-32">
+      <StorySeo story={story} />
       {/* Hero */}
       <div
         className="relative overflow-hidden border-b border-white/5"

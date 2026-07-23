@@ -1,4 +1,5 @@
 import { Switch, Route, Router as WouterRouter, useLocation } from "wouter";
+import { HelmetProvider } from "react-helmet-async";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster as ShadToaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
@@ -130,6 +131,7 @@ function AppShell() {
 
 function App() {
   return (
+    <HelmetProvider>
     <QueryClientProvider client={queryClient}>
       <I18nProvider>
         <AudioPlayerProvider>
@@ -143,6 +145,7 @@ function App() {
         </AudioPlayerProvider>
       </I18nProvider>
     </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 

@@ -6,6 +6,7 @@ import storiesRouter from "./stories";
 import meRouter from "./me";
 import adminRouter from "./admin";
 import growthRouter from "./growth";
+import sitemapRouter from "./sitemap";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use(storiesRouter);
 router.use(meRouter);
 router.use(adminRouter);
 router.use(growthRouter);
+router.use(sitemapRouter);
 
 export default router;

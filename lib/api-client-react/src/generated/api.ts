@@ -2603,6 +2603,79 @@ export function useAdminStats<
 }
 
 /**
+ * @summary Sitemap of published stories (XML)
+ */
+export const getGetSitemapUrl = () => {
+  return `/api/sitemap.xml`;
+};
+
+export const getSitemap = async (options?: RequestInit): Promise<string> => {
+  return customFetch<string>(getGetSitemapUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetSitemapQueryKey = () => {
+  return [`/api/sitemap.xml`] as const;
+};
+
+export const getGetSitemapQueryOptions = <
+  TData = Awaited<ReturnType<typeof getSitemap>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSitemap>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetSitemapQueryKey();
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getSitemap>>> = ({
+    signal,
+  }) => getSitemap({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getSitemap>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetSitemapQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getSitemap>>
+>;
+export type GetSitemapQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Sitemap of published stories (XML)
+ */
+
+export function useGetSitemap<
+  TData = Awaited<ReturnType<typeof getSitemap>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof getSitemap>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetSitemapQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
  * @summary Subscribe an email to the newsletter
  */
 export const getSubscribeNewsletterUrl = () => {

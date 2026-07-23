@@ -585,6 +585,18 @@ paths:
               schema:
                 $ref: '#/components/schemas/AdminStats'
 
+  /sitemap.xml:
+    get:
+      tags: [growth]
+      operationId: getSitemap
+      summary: Sitemap of published stories (XML)
+      responses:
+        '200':
+          description: ok
+          content:
+            application/xml:
+              schema: { type: string }
+
   /newsletter/subscribe:
     post:
       tags: [growth]
