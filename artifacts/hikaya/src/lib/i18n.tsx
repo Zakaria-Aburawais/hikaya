@@ -78,6 +78,11 @@ const en: Dict = {
   newsletter_placeholder: "you@email.com",
   exit_title: "Before you go…",
   exit_body: "One voiced story a week. No spam.",
+  signin_title: "Sign in to Hikāya",
+  signin_magic_cta: "Email me a sign-in link",
+  signin_sent: "Check your email for a sign-in link.",
+  signin_or: "or",
+  signin_replit: "Continue with Replit",
 };
 
 const ar: Dict = {
@@ -145,6 +150,11 @@ const ar: Dict = {
   newsletter_success: "تم تسجيلك. تفقّد بريدك.",
   exit_title: "قبل أن تذهب…",
   exit_body: "حكاية واحدة بالأصوات كل أسبوع. بلا رسائل مزعجة.",
+  signin_title: "سجّل الدخول إلى حكاية",
+  signin_magic_cta: "أرسل لي رابط الدخول",
+  signin_sent: "تفقّد بريدك؛ وصلك رابط تسجيل الدخول.",
+  signin_or: "أو",
+  signin_replit: "المتابعة عبر Replit",
 };
 
 const fr: Dict = {
@@ -173,6 +183,11 @@ const fr: Dict = {
   newsletter_success: "C'est fait. Vérifiez votre boîte mail.",
   exit_title: "Avant de partir…",
   exit_body: "Une histoire à écouter chaque semaine. Pas de spam.",
+  signin_title: "Connectez-vous à Hikāya",
+  signin_magic_cta: "Recevoir un lien de connexion",
+  signin_sent: "Vérifiez votre boîte mail : votre lien de connexion est arrivé.",
+  signin_or: "ou",
+  signin_replit: "Continuer avec Replit",
 };
 
 const nl: Dict = {
@@ -183,6 +198,11 @@ const nl: Dict = {
   newsletter_success: "Gelukt. Controleer je inbox.",
   exit_title: "Voor je gaat…",
   exit_body: "Eén ingesproken verhaal per week. Geen spam.",
+  signin_title: "Inloggen bij Hikāya",
+  signin_magic_cta: "Stuur mij een inloglink",
+  signin_sent: "Controleer je inbox voor je inloglink.",
+  signin_or: "of",
+  signin_replit: "Doorgaan met Replit",
 };
 
 const es: Dict = {
@@ -193,6 +213,11 @@ const es: Dict = {
   newsletter_success: "Listo. Revisa tu correo.",
   exit_title: "Antes de irte…",
   exit_body: "Una historia con voz cada semana. Sin spam.",
+  signin_title: "Inicia sesión en Hikāya",
+  signin_magic_cta: "Envíame un enlace de acceso",
+  signin_sent: "Revisa tu correo: te llegó el enlace de acceso.",
+  signin_or: "o",
+  signin_replit: "Continuar con Replit",
 };
 
 const de: Dict = {
@@ -203,6 +228,11 @@ const de: Dict = {
   newsletter_success: "Geschafft. Sieh in dein Postfach.",
   exit_title: "Bevor du gehst…",
   exit_body: "Eine vertonte Geschichte pro Woche. Kein Spam.",
+  signin_title: "Bei Hikāya anmelden",
+  signin_magic_cta: "Anmeldelink per E-Mail senden",
+  signin_sent: "Sieh in dein Postfach — dein Anmeldelink ist da.",
+  signin_or: "oder",
+  signin_replit: "Mit Replit fortfahren",
 };
 
 const dictionaries: Record<Lang, Dict> = { en, ar, fr, nl, es, de };

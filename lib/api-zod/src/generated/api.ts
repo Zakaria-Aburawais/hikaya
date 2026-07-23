@@ -66,6 +66,28 @@ export const LogoutBrowserSessionHeader = zod.object({
 });
 
 /**
+ * @summary Email a one-time sign-in link
+ */
+export const requestMagicLinkBodyEmailMin = 3;
+
+export const RequestMagicLinkBody = zod.object({
+  email: zod.string().email().min(requestMagicLinkBodyEmailMin),
+  returnTo: zod.string().optional(),
+});
+
+export const RequestMagicLinkResponse = zod.object({
+  ok: zod.boolean(),
+});
+
+/**
+ * @summary Verify a magic-link token and start a session
+ */
+export const VerifyMagicLinkQueryParams = zod.object({
+  token: zod.coerce.string(),
+  returnTo: zod.coerce.string().optional(),
+});
+
+/**
  * @summary Exchange a mobile OIDC code for a session token
  */
 

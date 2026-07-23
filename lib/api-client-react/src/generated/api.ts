@@ -33,6 +33,7 @@ import type {
   HealthStatus,
   ListStoriesParams,
   LogoutSuccess,
+  MagicLinkRequestBody,
   MobileTokenExchangeRequest,
   MobileTokenExchangeSuccess,
   NewsletterSubscribeBody,
@@ -48,6 +49,7 @@ import type {
   UpdatePreferencesBody,
   UpdateStoryBody,
   UpsertProgressBody,
+  VerifyMagicLinkParams,
   VoiceOption,
 } from "./api.schemas";
 
@@ -477,6 +479,186 @@ export function useLogoutBrowserSession<
   request?: SecondParameter<typeof customFetch>;
 }): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
   const queryOptions = getLogoutBrowserSessionQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Email a one-time sign-in link
+ */
+export const getRequestMagicLinkUrl = () => {
+  return `/api/auth/magic/request`;
+};
+
+export const requestMagicLink = async (
+  magicLinkRequestBody: MagicLinkRequestBody,
+  options?: RequestInit,
+): Promise<OkEnvelope> => {
+  return customFetch<OkEnvelope>(getRequestMagicLinkUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(magicLinkRequestBody),
+  });
+};
+
+export const getRequestMagicLinkMutationOptions = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof requestMagicLink>>,
+    TError,
+    { data: BodyType<MagicLinkRequestBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof requestMagicLink>>,
+  TError,
+  { data: BodyType<MagicLinkRequestBody> },
+  TContext
+> => {
+  const mutationKey = ["requestMagicLink"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof requestMagicLink>>,
+    { data: BodyType<MagicLinkRequestBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return requestMagicLink(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RequestMagicLinkMutationResult = NonNullable<
+  Awaited<ReturnType<typeof requestMagicLink>>
+>;
+export type RequestMagicLinkMutationBody = BodyType<MagicLinkRequestBody>;
+export type RequestMagicLinkMutationError = ErrorType<ErrorEnvelope>;
+
+/**
+ * @summary Email a one-time sign-in link
+ */
+export const useRequestMagicLink = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof requestMagicLink>>,
+    TError,
+    { data: BodyType<MagicLinkRequestBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof requestMagicLink>>,
+  TError,
+  { data: BodyType<MagicLinkRequestBody> },
+  TContext
+> => {
+  return useMutation(getRequestMagicLinkMutationOptions(options));
+};
+
+/**
+ * @summary Verify a magic-link token and start a session
+ */
+export const getVerifyMagicLinkUrl = (params: VerifyMagicLinkParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/auth/magic/verify?${stringifiedParams}`
+    : `/api/auth/magic/verify`;
+};
+
+export const verifyMagicLink = async (
+  params: VerifyMagicLinkParams,
+  options?: RequestInit,
+): Promise<unknown> => {
+  return customFetch<unknown>(getVerifyMagicLinkUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getVerifyMagicLinkQueryKey = (params?: VerifyMagicLinkParams) => {
+  return [`/api/auth/magic/verify`, ...(params ? [params] : [])] as const;
+};
+
+export const getVerifyMagicLinkQueryOptions = <
+  TData = Awaited<ReturnType<typeof verifyMagicLink>>,
+  TError = ErrorType<void>,
+>(
+  params: VerifyMagicLinkParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof verifyMagicLink>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getVerifyMagicLinkQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof verifyMagicLink>>> = ({
+    signal,
+  }) => verifyMagicLink(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof verifyMagicLink>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type VerifyMagicLinkQueryResult = NonNullable<
+  Awaited<ReturnType<typeof verifyMagicLink>>
+>;
+export type VerifyMagicLinkQueryError = ErrorType<void>;
+
+/**
+ * @summary Verify a magic-link token and start a session
+ */
+
+export function useVerifyMagicLink<
+  TData = Awaited<ReturnType<typeof verifyMagicLink>>,
+  TError = ErrorType<void>,
+>(
+  params: VerifyMagicLinkParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof verifyMagicLink>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getVerifyMagicLinkQueryOptions(params, options);
 
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
     queryKey: QueryKey;

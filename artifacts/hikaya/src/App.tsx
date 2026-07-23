@@ -20,6 +20,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { StickyAudioPlayer } from "@/components/StickyAudioPlayer";
 import { ExitIntentModal } from "@/components/ExitIntentModal";
 import { identify } from "@/lib/analytics";
+import { allGuestProgress, clearGuestProgress } from "@/lib/guest-progress";
 import { I18nProvider, useI18n } from "@/lib/i18n";
 import { AudioPlayerProvider } from "@/lib/audio-player";
 import { Button } from "@/components/ui/button";
@@ -68,6 +69,36 @@ function LangSync() {
   return null;
 }
 
+/** Replays localStorage guest progress into /me/progress once after sign-in. */
+function GuestProgressMigrator() {
+  const { isAuthenticated } = useAuth();
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const entries = allGuestProgress();
+    if (entries.length === 0) return;
+    (async () => {
+      for (const p of entries) {
+        try {
+          await fetch("/api/me/progress", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            credentials: "include",
+            body: JSON.stringify({
+              storyId: p.storyId,
+              chapterNumber: p.chapterNumber,
+              progressPercent: p.progressPercent,
+            }),
+          });
+        } catch {
+          return; // keep local copy; retry next load
+        }
+      }
+      clearGuestProgress();
+    })();
+  }, [isAuthenticated]);
+  return null;
+}
+
 function AppShell() {
   const [location] = useLocation();
   const isReader = /\/read\//.test(location);
@@ -92,6 +123,7 @@ function AppShell() {
       <StickyAudioPlayer />
       <ExitIntentModal />
       <LangSync />
+      <GuestProgressMigrator />
     </div>
   );
 }

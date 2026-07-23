@@ -74,6 +74,12 @@ export interface NewsletterSubscribeBody {
   locale?: string;
 }
 
+export interface MagicLinkRequestBody {
+  /** @minLength 3 */
+  email: string;
+  returnTo?: string;
+}
+
 export interface UpdatePreferencesBody {
   preferredLanguage: string;
 }
@@ -296,6 +302,11 @@ export type HandleBrowserLoginCallbackParams = {
   code?: string;
   state?: string;
   iss?: string;
+};
+
+export type VerifyMagicLinkParams = {
+  token: string;
+  returnTo?: string;
 };
 
 export type ListStoriesParams = {

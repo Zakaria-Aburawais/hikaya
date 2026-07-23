@@ -5,7 +5,9 @@ import { useAuth } from "@workspace/replit-auth-web";
 import { useAudioPlayer } from "@/lib/audio-player";
 import { useI18n } from "@/lib/i18n";
 import { track } from "@/lib/analytics";
+import { saveGuestProgress } from "@/lib/guest-progress";
 import { ChapterEndGate } from "@/components/ChapterEndGate";
+import { SignInDialog } from "@/components/SignInDialog";
 import { Button } from "@/components/ui/button";
 import {
   ChevronLeft,
@@ -26,10 +28,11 @@ export default function Reader() {
   const slug = params.slug!;
   const chNum = Number(params.chapterNumber);
   const { data, isLoading } = useGetChapter(slug, chNum);
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated } = useAuth();
   const { t, lang: uiLang } = useI18n();
   const player = useAudioPlayer();
   const [, navigate] = useLocation();
+  const [showSignIn, setShowSignIn] = useState(false);
   const upsertProgress = useUpsertMyProgress();
 
   const [fontSize, setFontSize] = useState<number>(() =>
@@ -52,16 +55,25 @@ export default function Reader() {
     return new URLSearchParams(window.location.search).get("listen") === "1";
   }, []);
 
-  // Save initial progress when chapter loads
+  // Save initial progress when chapter loads (guests keep it in localStorage
+  // until they sign in — see the migration effect in App.tsx)
   useEffect(() => {
-    if (!data || !isAuthenticated) return;
-    upsertProgress.mutate({
-      data: {
+    if (!data) return;
+    if (isAuthenticated) {
+      upsertProgress.mutate({
+        data: {
+          storyId: data.story.id,
+          chapterNumber: chNum,
+          progressPercent: 0,
+        },
+      });
+    } else {
+      saveGuestProgress({
         storyId: data.story.id,
         chapterNumber: chNum,
         progressPercent: 0,
-      },
-    });
+      });
+    }
   }, [data?.story.id, chNum, isAuthenticated]);
 
   // Funnel analytics
@@ -217,7 +229,7 @@ export default function Reader() {
                   size="sm"
                   variant="ghost"
                   className="ms-1 border border-current/20"
-                  onClick={login}
+                  onClick={() => setShowSignIn(true)}
                   data-testid="button-login-listen"
                 >
                   <Lock className="me-1.5 h-4 w-4" /> {t("login")}
@@ -313,6 +325,7 @@ export default function Reader() {
           </Button>
         </div>
       </article>
+      <SignInDialog open={showSignIn} onClose={() => setShowSignIn(false)} />
     </div>
   );
 }

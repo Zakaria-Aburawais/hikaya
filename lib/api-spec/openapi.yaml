@@ -95,6 +95,47 @@ paths:
       responses:
         '302':
           description: Redirect to OIDC logout.
+  /auth/magic/request:
+    post:
+      tags: [Auth]
+      operationId: requestMagicLink
+      summary: Email a one-time sign-in link
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MagicLinkRequestBody'
+      responses:
+        '200':
+          description: Link sent (always ok to avoid email enumeration)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OkEnvelope'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /auth/magic/verify:
+    get:
+      tags: [Auth]
+      operationId: verifyMagicLink
+      summary: Verify a magic-link token and start a session
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema: { type: string }
+        - name: returnTo
+          in: query
+          required: false
+          schema: { type: string }
+      responses:
+        '302':
+          description: Session started, redirect into the app.
   /mobile-auth/token-exchange:
     post:
       tags: [Auth]
@@ -651,6 +692,13 @@ components:
           type: string
           enum: [newsletter, chapter_gate, exit_intent, waitlist]
         locale: { type: string }
+
+    MagicLinkRequestBody:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string, format: email, minLength: 3 }
+        returnTo: { type: string }
 
     UpdatePreferencesBody:
       type: object
