@@ -24,6 +24,7 @@ import type {
   Chapter,
   ChapterDetail,
   Character,
+  CheckoutBody,
   CreateChapterBody,
   CreateCharacterBody,
   CreateStoryBody,
@@ -41,6 +42,7 @@ import type {
   ParsePdfBody,
   ParsePdfResult,
   ProgressEntry,
+  PurchaseStoryBody,
   Story,
   StoryDetail,
   ToggleBookmarkBody,
@@ -49,6 +51,7 @@ import type {
   UpdatePreferencesBody,
   UpdateStoryBody,
   UpsertProgressBody,
+  UrlEnvelope,
   VerifyMagicLinkParams,
   VoiceOption,
 } from "./api.schemas";
@@ -2601,6 +2604,259 @@ export function useAdminStats<
 
   return { ...query, queryKey: queryOptions.queryKey };
 }
+
+/**
+ * @summary Start a Plus subscription checkout
+ */
+export const getCreateCheckoutUrl = () => {
+  return `/api/billing/checkout`;
+};
+
+export const createCheckout = async (
+  checkoutBody: CheckoutBody,
+  options?: RequestInit,
+): Promise<UrlEnvelope> => {
+  return customFetch<UrlEnvelope>(getCreateCheckoutUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(checkoutBody),
+  });
+};
+
+export const getCreateCheckoutMutationOptions = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCheckout>>,
+    TError,
+    { data: BodyType<CheckoutBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createCheckout>>,
+  TError,
+  { data: BodyType<CheckoutBody> },
+  TContext
+> => {
+  const mutationKey = ["createCheckout"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createCheckout>>,
+    { data: BodyType<CheckoutBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createCheckout(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCheckoutMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createCheckout>>
+>;
+export type CreateCheckoutMutationBody = BodyType<CheckoutBody>;
+export type CreateCheckoutMutationError = ErrorType<ErrorEnvelope>;
+
+/**
+ * @summary Start a Plus subscription checkout
+ */
+export const useCreateCheckout = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCheckout>>,
+    TError,
+    { data: BodyType<CheckoutBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createCheckout>>,
+  TError,
+  { data: BodyType<CheckoutBody> },
+  TContext
+> => {
+  return useMutation(getCreateCheckoutMutationOptions(options));
+};
+
+/**
+ * @summary Open the customer portal (manage/cancel)
+ */
+export const getCreateBillingPortalUrl = () => {
+  return `/api/billing/portal`;
+};
+
+export const createBillingPortal = async (
+  options?: RequestInit,
+): Promise<UrlEnvelope> => {
+  return customFetch<UrlEnvelope>(getCreateBillingPortalUrl(), {
+    ...options,
+    method: "POST",
+  });
+};
+
+export const getCreateBillingPortalMutationOptions = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBillingPortal>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createBillingPortal>>,
+  TError,
+  void,
+  TContext
+> => {
+  const mutationKey = ["createBillingPortal"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createBillingPortal>>,
+    void
+  > = () => {
+    return createBillingPortal(requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateBillingPortalMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createBillingPortal>>
+>;
+
+export type CreateBillingPortalMutationError = ErrorType<ErrorEnvelope>;
+
+/**
+ * @summary Open the customer portal (manage/cancel)
+ */
+export const useCreateBillingPortal = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createBillingPortal>>,
+    TError,
+    void,
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createBillingPortal>>,
+  TError,
+  void,
+  TContext
+> => {
+  return useMutation(getCreateBillingPortalMutationOptions(options));
+};
+
+/**
+ * @summary Buy a single story unlock
+ */
+export const getPurchaseStoryUrl = () => {
+  return `/api/purchases/story`;
+};
+
+export const purchaseStory = async (
+  purchaseStoryBody: PurchaseStoryBody,
+  options?: RequestInit,
+): Promise<UrlEnvelope> => {
+  return customFetch<UrlEnvelope>(getPurchaseStoryUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(purchaseStoryBody),
+  });
+};
+
+export const getPurchaseStoryMutationOptions = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof purchaseStory>>,
+    TError,
+    { data: BodyType<PurchaseStoryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof purchaseStory>>,
+  TError,
+  { data: BodyType<PurchaseStoryBody> },
+  TContext
+> => {
+  const mutationKey = ["purchaseStory"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof purchaseStory>>,
+    { data: BodyType<PurchaseStoryBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return purchaseStory(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type PurchaseStoryMutationResult = NonNullable<
+  Awaited<ReturnType<typeof purchaseStory>>
+>;
+export type PurchaseStoryMutationBody = BodyType<PurchaseStoryBody>;
+export type PurchaseStoryMutationError = ErrorType<ErrorEnvelope>;
+
+/**
+ * @summary Buy a single story unlock
+ */
+export const usePurchaseStory = <
+  TError = ErrorType<ErrorEnvelope>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof purchaseStory>>,
+    TError,
+    { data: BodyType<PurchaseStoryBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof purchaseStory>>,
+  TError,
+  { data: BodyType<PurchaseStoryBody> },
+  TContext
+> => {
+  return useMutation(getPurchaseStoryMutationOptions(options));
+};
 
 /**
  * @summary Sitemap of published stories (XML)

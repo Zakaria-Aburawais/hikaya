@@ -20,6 +20,8 @@ tags:
     description: Current user data
   - name: growth
     description: Email capture and growth endpoints
+  - name: billing
+    description: Subscriptions, purchases, customer portal
 paths:
   /healthz:
     get:
@@ -585,6 +587,73 @@ paths:
               schema:
                 $ref: '#/components/schemas/AdminStats'
 
+  /billing/checkout:
+    post:
+      tags: [billing]
+      operationId: createCheckout
+      summary: Start a Plus subscription checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CheckoutBody'
+      responses:
+        '200':
+          description: Redirect URL to the provider checkout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlEnvelope'
+        '401':
+          description: Not signed in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /billing/portal:
+    post:
+      tags: [billing]
+      operationId: createBillingPortal
+      summary: Open the customer portal (manage/cancel)
+      responses:
+        '200':
+          description: Redirect URL to the provider portal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlEnvelope'
+        '400':
+          description: No billing customer yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /purchases/story:
+    post:
+      tags: [billing]
+      operationId: purchaseStory
+      summary: Buy a single story unlock
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseStoryBody'
+      responses:
+        '200':
+          description: Redirect URL to the provider checkout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlEnvelope'
+        '404':
+          description: Story not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+
   /sitemap.xml:
     get:
       tags: [growth]
@@ -711,6 +780,24 @@ components:
       properties:
         email: { type: string, format: email, minLength: 3 }
         returnTo: { type: string }
+
+    UrlEnvelope:
+      type: object
+      required: [url]
+      properties:
+        url: { type: string }
+    CheckoutBody:
+      type: object
+      required: [interval]
+      properties:
+        interval:
+          type: string
+          enum: [monthly, annual]
+    PurchaseStoryBody:
+      type: object
+      required: [storyId]
+      properties:
+        storyId: { type: string, minLength: 1 }
 
     UpdatePreferencesBody:
       type: object

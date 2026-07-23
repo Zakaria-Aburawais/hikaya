@@ -80,6 +80,27 @@ export interface MagicLinkRequestBody {
   returnTo?: string;
 }
 
+export interface UrlEnvelope {
+  url: string;
+}
+
+export type CheckoutBodyInterval =
+  (typeof CheckoutBodyInterval)[keyof typeof CheckoutBodyInterval];
+
+export const CheckoutBodyInterval = {
+  monthly: "monthly",
+  annual: "annual",
+} as const;
+
+export interface CheckoutBody {
+  interval: CheckoutBodyInterval;
+}
+
+export interface PurchaseStoryBody {
+  /** @minLength 1 */
+  storyId: string;
+}
+
 export interface UpdatePreferencesBody {
   preferredLanguage: string;
 }

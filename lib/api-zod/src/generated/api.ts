@@ -630,6 +630,36 @@ export const AdminStatsResponse = zod.object({
 });
 
 /**
+ * @summary Start a Plus subscription checkout
+ */
+export const CreateCheckoutBody = zod.object({
+  interval: zod.enum(["monthly", "annual"]),
+});
+
+export const CreateCheckoutResponse = zod.object({
+  url: zod.string(),
+});
+
+/**
+ * @summary Open the customer portal (manage/cancel)
+ */
+export const CreateBillingPortalResponse = zod.object({
+  url: zod.string(),
+});
+
+/**
+ * @summary Buy a single story unlock
+ */
+
+export const PurchaseStoryBody = zod.object({
+  storyId: zod.string().min(1),
+});
+
+export const PurchaseStoryResponse = zod.object({
+  url: zod.string(),
+});
+
+/**
  * @summary Subscribe an email to the newsletter
  */
 export const subscribeNewsletterBodyEmailMin = 3;
