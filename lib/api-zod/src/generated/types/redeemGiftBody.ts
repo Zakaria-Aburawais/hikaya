@@ -6,8 +6,7 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface PurchaseStoryBody {
+export interface RedeemGiftBody {
   /** @minLength 1 */
-  storyId: string;
-  recipientEmail?: string;
+  token: string;
 }

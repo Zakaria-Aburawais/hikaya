@@ -102,6 +102,10 @@ export const stripeProvider: PaymentProvider = {
             // Prefer the payment intent so charge.refunded events can be
             // matched back to the order later.
             paymentId: String(cs.payment_intent ?? cs.id),
+            message: cs.metadata?.message ? String(cs.metadata.message) : undefined,
+            giftRecipientEmail: cs.metadata?.giftRecipientEmail
+              ? String(cs.metadata.giftRecipientEmail)
+              : undefined,
           };
         }
         return { type: "ignore", providerEventId: id };

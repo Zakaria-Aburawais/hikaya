@@ -99,6 +99,47 @@ export interface CheckoutBody {
 export interface PurchaseStoryBody {
   /** @minLength 1 */
   storyId: string;
+  recipientEmail?: string;
+}
+
+export interface TipBody {
+  storyId?: string;
+  /**
+   * @minimum 100
+   * @maximum 100000
+   */
+  amountCents: number;
+  /** @maxLength 500 */
+  message?: string;
+}
+
+export interface ReferralCodeResult {
+  code: string;
+  url: string;
+}
+
+export interface RedeemReferralBody {
+  /** @minLength 1 */
+  code: string;
+}
+
+export interface RedeemReferralResult {
+  ok: boolean;
+  trialDays: number;
+}
+
+export interface RedeemGiftBody {
+  /** @minLength 1 */
+  token: string;
+}
+
+export interface RedeemGiftResult {
+  ok: boolean;
+  storySlug: string;
+}
+
+export interface SupporterStatus {
+  supporter: boolean;
 }
 
 export interface UpdatePreferencesBody {

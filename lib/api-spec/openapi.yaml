@@ -654,6 +654,97 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorEnvelope'
 
+  /tips:
+    post:
+      tags: [billing]
+      operationId: createTip
+      summary: Tip a story (one-time checkout)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TipBody'
+      responses:
+        '200':
+          description: Redirect URL to the provider checkout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UrlEnvelope'
+  /referrals/code:
+    get:
+      tags: [growth]
+      operationId: getMyReferralCode
+      summary: Get (or create) my referral code
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReferralCodeResult'
+  /referrals/redeem:
+    post:
+      tags: [growth]
+      operationId: redeemReferral
+      summary: Redeem a referral code (14 days of Plus for both sides)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedeemReferralBody'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedeemReferralResult'
+        '400':
+          description: Invalid code
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /gifts/redeem:
+    post:
+      tags: [billing]
+      operationId: redeemGift
+      summary: Redeem a gifted story
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RedeemGiftBody'
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RedeemGiftResult'
+        '400':
+          description: Invalid or already-redeemed gift
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorEnvelope'
+  /me/supporter:
+    get:
+      tags: [me]
+      operationId: getMySupporterStatus
+      summary: Whether the current user has ever tipped
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupporterStatus'
+
   /sitemap.xml:
     get:
       tags: [growth]
@@ -798,6 +889,47 @@ components:
       required: [storyId]
       properties:
         storyId: { type: string, minLength: 1 }
+        recipientEmail: { type: string, format: email }
+    TipBody:
+      type: object
+      required: [amountCents]
+      properties:
+        storyId: { type: string }
+        amountCents: { type: integer, minimum: 100, maximum: 100000 }
+        message: { type: string, maxLength: 500 }
+    ReferralCodeResult:
+      type: object
+      required: [code, url]
+      properties:
+        code: { type: string }
+        url: { type: string }
+    RedeemReferralBody:
+      type: object
+      required: [code]
+      properties:
+        code: { type: string, minLength: 1 }
+    RedeemReferralResult:
+      type: object
+      required: [ok, trialDays]
+      properties:
+        ok: { type: boolean }
+        trialDays: { type: integer }
+    RedeemGiftBody:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string, minLength: 1 }
+    RedeemGiftResult:
+      type: object
+      required: [ok, storySlug]
+      properties:
+        ok: { type: boolean }
+        storySlug: { type: string }
+    SupporterStatus:
+      type: object
+      required: [supporter]
+      properties:
+        supporter: { type: boolean }
 
     UpdatePreferencesBody:
       type: object

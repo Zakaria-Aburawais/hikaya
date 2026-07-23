@@ -6,6 +6,7 @@ import {
   storiesTable,
   bookmarksTable,
   readingProgressTable,
+  tipsTable,
 } from "@workspace/db";
 import {
   UpdateMyPreferencesBody,
@@ -115,6 +116,15 @@ router.post("/me/bookmarks", requireAuth, async (req, res): Promise<void> => {
   }
   await db.insert(bookmarksTable).values({ userId, storyId });
   res.json({ bookmarked: true });
+});
+
+router.get("/me/supporter", requireAuth, async (req, res): Promise<void> => {
+  const [tip] = await db
+    .select({ id: tipsTable.id })
+    .from(tipsTable)
+    .where(eq(tipsTable.fromUserId, req.user!.id))
+    .limit(1);
+  res.json({ supporter: !!tip });
 });
 
 export default router;

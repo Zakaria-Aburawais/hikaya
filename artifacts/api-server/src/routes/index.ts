@@ -8,6 +8,7 @@ import adminRouter from "./admin";
 import growthRouter from "./growth";
 import sitemapRouter from "./sitemap";
 import billingRouter from "./billing";
+import referralsRouter from "./referrals";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(adminRouter);
 router.use(growthRouter);
 router.use(sitemapRouter);
 router.use(billingRouter);
+router.use(referralsRouter);
 
 export default router;

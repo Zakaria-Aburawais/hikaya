@@ -102,6 +102,16 @@ const en: Dict = {
   buy_story: "Unlock this story",
   manage_plan: "Manage plan",
   go_plus: "Get Hikāya Plus",
+  tip: "Support this story",
+  supporter: "Supporter",
+  gift_story: "Gift this story",
+  gift_cta: "Send as a gift",
+  gift_recipient_placeholder: "friend@email.com",
+  gift_redeem_title: "You've been gifted a story",
+  gift_redeem_cta: "Unlock my gift",
+  refer_title: "Give a friend 14 days of Plus — get 14 days free",
+  refer_copy: "Copy invite link",
+  refer_copied: "Copied!",
 };
 
 const ar: Dict = {
@@ -193,6 +203,16 @@ const ar: Dict = {
   buy_story: "افتح هذه الحكاية",
   manage_plan: "إدارة الاشتراك",
   go_plus: "احصل على حكاية بلس",
+  tip: "ادعم هذه الحكاية",
+  supporter: "داعم",
+  gift_story: "أهدِ هذه الحكاية",
+  gift_cta: "أرسلها هدية",
+  gift_recipient_placeholder: "friend@email.com",
+  gift_redeem_title: "وصلتك حكاية هدية",
+  gift_redeem_cta: "افتح هديتي",
+  refer_title: "امنح صديقك ١٤ يومًا من بلس — واحصل على ١٤ يومًا مجانًا",
+  refer_copy: "انسخ رابط الدعوة",
+  refer_copied: "تم النسخ!",
 };
 
 const fr: Dict = {
@@ -245,6 +265,16 @@ const fr: Dict = {
   buy_story: "Débloquer cette histoire",
   manage_plan: "Gérer l'abonnement",
   go_plus: "Obtenir Hikāya Plus",
+  tip: "Soutenir cette histoire",
+  supporter: "Soutien",
+  gift_story: "Offrir cette histoire",
+  gift_cta: "Envoyer en cadeau",
+  gift_recipient_placeholder: "ami@email.com",
+  gift_redeem_title: "On vous a offert une histoire",
+  gift_redeem_cta: "Débloquer mon cadeau",
+  refer_title: "Offrez 14 jours de Plus à un ami — recevez 14 jours gratuits",
+  refer_copy: "Copier le lien d'invitation",
+  refer_copied: "Copié !",
 };
 
 const nl: Dict = {
@@ -279,6 +309,16 @@ const nl: Dict = {
   buy_story: "Dit verhaal ontgrendelen",
   manage_plan: "Abonnement beheren",
   go_plus: "Hikāya Plus nemen",
+  tip: "Steun dit verhaal",
+  supporter: "Steuner",
+  gift_story: "Geef dit verhaal cadeau",
+  gift_cta: "Als cadeau versturen",
+  gift_recipient_placeholder: "vriend@email.com",
+  gift_redeem_title: "Je hebt een verhaal cadeau gekregen",
+  gift_redeem_cta: "Mijn cadeau ontgrendelen",
+  refer_title: "Geef een vriend 14 dagen Plus — krijg zelf 14 dagen gratis",
+  refer_copy: "Uitnodigingslink kopiëren",
+  refer_copied: "Gekopieerd!",
 };
 
 const es: Dict = {
@@ -313,6 +353,16 @@ const es: Dict = {
   buy_story: "Desbloquear esta historia",
   manage_plan: "Gestionar el plan",
   go_plus: "Consigue Hikāya Plus",
+  tip: "Apoyar esta historia",
+  supporter: "Mecenas",
+  gift_story: "Regala esta historia",
+  gift_cta: "Enviar como regalo",
+  gift_recipient_placeholder: "amigo@email.com",
+  gift_redeem_title: "Te han regalado una historia",
+  gift_redeem_cta: "Desbloquear mi regalo",
+  refer_title: "Regala 14 días de Plus a un amigo — y recibe 14 días gratis",
+  refer_copy: "Copiar enlace de invitación",
+  refer_copied: "¡Copiado!",
 };
 
 const de: Dict = {
@@ -347,6 +397,16 @@ const de: Dict = {
   buy_story: "Diese Geschichte freischalten",
   manage_plan: "Abo verwalten",
   go_plus: "Hikāya Plus holen",
+  tip: "Diese Geschichte unterstützen",
+  supporter: "Förderer",
+  gift_story: "Diese Geschichte verschenken",
+  gift_cta: "Als Geschenk senden",
+  gift_recipient_placeholder: "freund@email.com",
+  gift_redeem_title: "Dir wurde eine Geschichte geschenkt",
+  gift_redeem_cta: "Mein Geschenk freischalten",
+  refer_title: "Schenke 14 Tage Plus — und erhalte selbst 14 Tage gratis",
+  refer_copy: "Einladungslink kopieren",
+  refer_copied: "Kopiert!",
 };
 
 const dictionaries: Record<Lang, Dict> = { en, ar, fr, nl, es, de };

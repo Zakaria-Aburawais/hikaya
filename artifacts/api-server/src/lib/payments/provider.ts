@@ -40,6 +40,8 @@ export type ProviderEvent =
       amountCents: number;
       currency: string;
       paymentId: string;
+      message?: string;
+      giftRecipientEmail?: string;
     }
   | { type: "refund"; providerEventId: string; paymentId: string }
   | { type: "ignore"; providerEventId: string };

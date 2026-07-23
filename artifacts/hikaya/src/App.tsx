@@ -14,6 +14,7 @@ import Reader from "@/pages/Reader";
 import Profile from "@/pages/Profile";
 import Shelf from "@/pages/Shelf";
 import Pricing from "@/pages/Pricing";
+import GiftRedeem from "@/pages/GiftRedeem";
 import AdminDashboard from "@/pages/admin/Dashboard";
 import UploadStory from "@/pages/admin/UploadStory";
 import EditStory from "@/pages/admin/EditStory";
@@ -71,6 +72,29 @@ function LangSync() {
   return null;
 }
 
+/** Captures ?ref= on landing and redeems it once after sign-in. */
+function ReferralRedeemer() {
+  const { isAuthenticated } = useAuth();
+  useEffect(() => {
+    const ref = new URLSearchParams(window.location.search).get("ref");
+    if (ref) localStorage.setItem("hikaya.ref_code", ref);
+  }, []);
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const code = localStorage.getItem("hikaya.ref_code");
+    if (!code) return;
+    fetch("/api/referrals/redeem", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ code }),
+    })
+      .then(() => localStorage.removeItem("hikaya.ref_code"))
+      .catch(() => {});
+  }, [isAuthenticated]);
+  return null;
+}
+
 /** Replays localStorage guest progress into /me/progress once after sign-in. */
 function GuestProgressMigrator() {
   const { isAuthenticated } = useAuth();
@@ -116,6 +140,7 @@ function AppShell() {
           <Route path="/profile" component={Profile} />
           <Route path="/shelf" component={Shelf} />
           <Route path="/pricing" component={Pricing} />
+          <Route path="/gift/redeem" component={GiftRedeem} />
           <Route path="/admin">{() => <AdminGuard><AdminDashboard /></AdminGuard>}</Route>
           <Route path="/admin/upload">{() => <AdminGuard><UploadStory /></AdminGuard>}</Route>
           <Route path="/admin/stories/:id">{() => <AdminGuard><EditStory /></AdminGuard>}</Route>
@@ -127,6 +152,7 @@ function AppShell() {
       <ExitIntentModal />
       <LangSync />
       <GuestProgressMigrator />
+      <ReferralRedeemer />
     </div>
   );
 }

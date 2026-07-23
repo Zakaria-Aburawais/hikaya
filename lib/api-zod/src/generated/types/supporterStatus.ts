@@ -6,8 +6,6 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export interface PurchaseStoryBody {
-  /** @minLength 1 */
-  storyId: string;
-  recipientEmail?: string;
+export interface SupporterStatus {
+  supporter: boolean;
 }

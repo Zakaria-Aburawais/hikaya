@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken";
 import { Router, type IRouter, type Request, type Response } from "express";
 import { and, eq, isNull } from "drizzle-orm";
 import {
@@ -8,10 +9,12 @@ import {
   entitlementsTable,
   ordersTable,
   processedEventsTable,
+  tipsTable,
 } from "@workspace/db";
-import { CreateCheckoutBody, PurchaseStoryBody } from "@workspace/api-zod";
+import { CreateCheckoutBody, PurchaseStoryBody, CreateTipBody, RedeemGiftBody } from "@workspace/api-zod";
 import { requireAuth } from "../middlewares/requireAdmin";
 import { stripeProvider as provider } from "../lib/payments/stripe";
+import { sendEmail } from "../lib/email";
 
 const router: IRouter = Router();
 
@@ -56,7 +59,8 @@ router.post("/billing/checkout", requireAuth, async (req, res): Promise<void> =>
   res.json({ url });
 });
 
-// Buy a single story (price comes from the DB, never the client)
+// Buy a single story for yourself, or gift it via recipientEmail
+// (price comes from the DB, never the client)
 router.post("/purchases/story", requireAuth, async (req, res): Promise<void> => {
   const parsed = PurchaseStoryBody.safeParse(req.body);
   if (!parsed.success) {
@@ -72,6 +76,7 @@ router.post("/purchases/story", requireAuth, async (req, res): Promise<void> => 
     res.status(404).json({ error: "Story not found" });
     return;
   }
+  const recipientEmail = parsed.data.recipientEmail?.toLowerCase().trim();
   const [u] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
   const base = getBase(req);
   const { url } = await provider.createCheckout({
@@ -80,11 +85,94 @@ router.post("/purchases/story", requireAuth, async (req, res): Promise<void> => 
     mode: "payment",
     amountCents: story.priceCents ?? DEFAULT_STORY_PRICE_CENTS,
     currency: "usd",
-    metadata: { userId, kind: "story", storyId: story.id, title: story.title },
-    successUrl: `${base}/story/${story.slug}?unlocked=1`,
+    metadata: recipientEmail
+      ? { userId, kind: "gift", storyId: story.id, title: story.title, giftRecipientEmail: recipientEmail }
+      : { userId, kind: "story", storyId: story.id, title: story.title },
+    successUrl: recipientEmail
+      ? `${base}/story/${story.slug}?gifted=1`
+      : `${base}/story/${story.slug}?unlocked=1`,
     cancelUrl: `${base}/story/${story.slug}`,
   });
   res.json({ url });
+});
+
+// Tip a story — a one-time checkout with kind: tip
+router.post("/tips", requireAuth, async (req, res): Promise<void> => {
+  const parsed = CreateTipBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const userId = req.user!.id;
+  const { storyId, amountCents, message } = parsed.data;
+  let slug = "";
+  if (storyId) {
+    const [story] = await db.select().from(storiesTable).where(eq(storiesTable.id, storyId));
+    if (!story) {
+      res.status(404).json({ error: "Story not found" });
+      return;
+    }
+    slug = story.slug;
+  }
+  const [u] = await db.select().from(usersTable).where(eq(usersTable.id, userId));
+  const base = getBase(req);
+  const { url } = await provider.createCheckout({
+    userId,
+    customerId: u?.billingCustomerId,
+    mode: "payment",
+    amountCents,
+    currency: "usd",
+    metadata: {
+      userId,
+      kind: "tip",
+      storyId: storyId ?? "",
+      message: message ?? "",
+      title: "Support this story",
+    },
+    successUrl: slug ? `${base}/story/${slug}?tipped=1` : `${base}/?tipped=1`,
+    cancelUrl: slug ? `${base}/story/${slug}` : `${base}/`,
+  });
+  res.json({ url });
+});
+
+// Redeem a gifted story: the token from the gift email grants the current user
+// a per-story entitlement, once.
+router.post("/gifts/redeem", requireAuth, async (req, res): Promise<void> => {
+  const parsed = RedeemGiftBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+  const secret = process.env.MAGIC_LINK_SECRET;
+  if (!secret) {
+    res.status(503).json({ error: "gifts_unavailable" });
+    return;
+  }
+  let orderId: string;
+  try {
+    ({ orderId } = jwt.verify(parsed.data.token, secret) as { orderId: string });
+  } catch {
+    res.status(400).json({ error: "invalid_gift" });
+    return;
+  }
+  const [order] = await db.select().from(ordersTable).where(eq(ordersTable.id, orderId));
+  if (!order || order.kind !== "gift" || order.status !== "paid" || !order.storyId) {
+    res.status(400).json({ error: "invalid_gift" });
+    return;
+  }
+  const [story] = await db.select().from(storiesTable).where(eq(storiesTable.id, order.storyId));
+  if (!story) {
+    res.status(400).json({ error: "invalid_gift" });
+    return;
+  }
+  await db
+    .update(ordersTable)
+    .set({ status: "redeemed" })
+    .where(eq(ordersTable.id, order.id));
+  await db
+    .insert(entitlementsTable)
+    .values({ userId: req.user!.id, storyId: order.storyId, source: "purchase" });
+  res.json({ ok: true, storySlug: story.slug });
 });
 
 // Customer portal (manage / cancel)
@@ -225,6 +313,67 @@ export async function stripeWebhookHandler(req: Request, res: Response): Promise
     await db
       .insert(entitlementsTable)
       .values({ userId: event.userId, storyId: event.storyId, source: "purchase" });
+  }
+
+  if (event.type === "payment_succeeded" && event.kind === "tip") {
+    await db
+      .insert(ordersTable)
+      .values({
+        userId: event.userId,
+        storyId: event.storyId ?? null,
+        kind: "tip",
+        amountCents: event.amountCents,
+        currency: event.currency,
+        provider: "stripe",
+        providerPaymentId: event.paymentId,
+        status: "paid",
+      })
+      .onConflictDoNothing();
+    await db.insert(tipsTable).values({
+      fromUserId: event.userId,
+      storyId: event.storyId ?? null,
+      amountCents: event.amountCents,
+      message: event.message ?? null,
+    });
+  }
+
+  if (
+    event.type === "payment_succeeded" &&
+    event.kind === "gift" &&
+    event.storyId &&
+    event.giftRecipientEmail
+  ) {
+    const [order] = await db
+      .insert(ordersTable)
+      .values({
+        userId: event.userId,
+        storyId: event.storyId,
+        kind: "gift",
+        amountCents: event.amountCents,
+        currency: event.currency,
+        provider: "stripe",
+        providerPaymentId: event.paymentId,
+        status: "paid",
+        giftRecipientEmail: event.giftRecipientEmail,
+      })
+      .onConflictDoNothing()
+      .returning();
+    const secret = process.env.MAGIC_LINK_SECRET;
+    if (order && secret) {
+      const [story] = await db
+        .select()
+        .from(storiesTable)
+        .where(eq(storiesTable.id, event.storyId));
+      const token = jwt.sign({ orderId: order.id }, secret, { expiresIn: "90d" });
+      const base = process.env.APP_BASE_URL?.replace(/\/+$/, "") ?? getBase(req);
+      const link = `${base}/gift/redeem?token=${encodeURIComponent(token)}`;
+      sendEmail(
+        event.giftRecipientEmail,
+        `A story on Hikāya was gifted to you 🎧`,
+        `<p>Someone gifted you "${story?.title ?? "a story"}" on Hikāya — every character voiced, like an audio drama.</p>
+         <p><a href="${link}">Tap here to unlock it</a> (sign in or create a free account first).</p>`,
+      ).catch((e) => req.log.error({ err: e }, "gift email failed"));
+    }
   }
 
   if (event.type === "refund" && event.paymentId) {

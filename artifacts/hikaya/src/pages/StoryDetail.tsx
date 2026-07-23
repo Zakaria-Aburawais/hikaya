@@ -4,6 +4,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@workspace/replit-auth-web";
 import { useI18n } from "@/lib/i18n";
 import { StorySeo } from "@/components/StorySeo";
+import { TipButton } from "@/components/TipButton";
+import { GiftStoryForm } from "@/components/GiftStoryForm";
 import { Button } from "@/components/ui/button";
 import { Bookmark, BookOpen, Headphones, Lock, Play, Volume2, ChevronRight, Film } from "lucide-react";
 
@@ -144,6 +146,11 @@ export default function StoryDetail() {
             {!isAuthenticated && firstChapter?.hasAudio && (
               <p className="mt-3 text-xs text-white/55">{t("guest_listen_locked")}</p>
             )}
+
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <TipButton storyId={story.id} />
+              <GiftStoryForm storyId={story.id} />
+            </div>
           </div>
         </div>
       </div>

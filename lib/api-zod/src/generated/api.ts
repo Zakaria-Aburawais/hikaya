@@ -685,10 +685,73 @@ export const CreateBillingPortalResponse = zod.object({
 
 export const PurchaseStoryBody = zod.object({
   storyId: zod.string().min(1),
+  recipientEmail: zod.string().email().optional(),
 });
 
 export const PurchaseStoryResponse = zod.object({
   url: zod.string(),
+});
+
+/**
+ * @summary Tip a story (one-time checkout)
+ */
+export const createTipBodyAmountCentsMin = 100;
+export const createTipBodyAmountCentsMax = 100000;
+
+export const createTipBodyMessageMax = 500;
+
+export const CreateTipBody = zod.object({
+  storyId: zod.string().optional(),
+  amountCents: zod
+    .number()
+    .min(createTipBodyAmountCentsMin)
+    .max(createTipBodyAmountCentsMax),
+  message: zod.string().max(createTipBodyMessageMax).optional(),
+});
+
+export const CreateTipResponse = zod.object({
+  url: zod.string(),
+});
+
+/**
+ * @summary Get (or create) my referral code
+ */
+export const GetMyReferralCodeResponse = zod.object({
+  code: zod.string(),
+  url: zod.string(),
+});
+
+/**
+ * @summary Redeem a referral code (14 days of Plus for both sides)
+ */
+
+export const RedeemReferralBody = zod.object({
+  code: zod.string().min(1),
+});
+
+export const RedeemReferralResponse = zod.object({
+  ok: zod.boolean(),
+  trialDays: zod.number(),
+});
+
+/**
+ * @summary Redeem a gifted story
+ */
+
+export const RedeemGiftBody = zod.object({
+  token: zod.string().min(1),
+});
+
+export const RedeemGiftResponse = zod.object({
+  ok: zod.boolean(),
+  storySlug: zod.string(),
+});
+
+/**
+ * @summary Whether the current user has ever tipped
+ */
+export const GetMySupporterStatusResponse = zod.object({
+  supporter: zod.boolean(),
 });
 
 /**
